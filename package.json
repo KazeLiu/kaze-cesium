@@ -1,0 +1,23 @@
+{
+  "name": "kaze-cesium",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "sass-resources-loader": "^2.2.5",
+    "vue": "^3.2.47"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.1.0",
+    "cesium": "^1.107.0",
+    "sass": "^1.63.6",
+    "sass-loader": "^13.3.2",
+    "vite": "^4.3.9",
+    "vite-plugin-cesium": "^1.2.22"
+  }
+}
