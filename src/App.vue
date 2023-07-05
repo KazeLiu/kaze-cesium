@@ -29,7 +29,10 @@ onMounted(async () => {
     scale: 0.50,
     position: [112, 38]
   })
-  cesium.cesium.changeCollectionShowAndHide(false)
+  cesium.cesium.changeCollectionShowAndHide(false, 'haha')
+  cesium.cesium.on('contextMenu',res=>{
+    console.log(res)
+  })
 })
 const cesium = reactive({
   cesium: null,

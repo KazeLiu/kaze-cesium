@@ -2,7 +2,8 @@ import * as Cesium from "cesium";
 
 export default class CesiumInit {
     viewer = null;
-    dataSourceList =  [];
+    dataSourceList = [];
+
     constructor(domId, option) {
         Cesium.Camera.DEFAULT_VIEW_RECTANGLE = Cesium.Rectangle.fromDegrees(89.5, 20.4, 110.4, 61.2);
         // 新建地球视图
@@ -40,12 +41,11 @@ export default class CesiumInit {
         this.viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK);
         // 初始化组
         let promiseList = [];
-        [...new Set(['defaultCollection',...this.dataSourceList])].forEach(name => {
+        [...new Set(['defaultCollection', ...this.dataSourceList])].forEach(name => {
             const dataSource = new Cesium.CustomDataSource(name);
             promiseList.push(this.viewer.dataSources.add(dataSource));
         })
         await Promise.all(promiseList);
+
     }
-
-
 }

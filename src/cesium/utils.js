@@ -1,7 +1,11 @@
-// 基础计算方法放这里 不需要使用viewer的
+// 基础计算方法放这里 比如坐标系转换 颜色转化 视角锁定解锁
 import * as Cesium from "cesium";
 
 export default class CesiumUtils {
+    constructor(viewer) {
+        this.viewer = viewer;
+    }
+
     /**
      * 转化为地图用的颜色
      */
@@ -28,5 +32,29 @@ export default class CesiumUtils {
             return;
         }
         return new Cesium.Color(sColorChange[0] / 255, sColorChange[1] / 255, sColorChange[2] / 255, alpha)
+    }
+
+    /**
+     * 取消视角锁定
+     */
+    unlockCamera() {
+        this.viewer.trackedEntity = undefined;
+        this.viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY)
+    }
+
+    /**
+     * 世界坐标系转经纬度
+     */
+    cartesian3ToDegree2(cartesian){
+        const ellipsoid = this.viewer.scene.globe.ellipsoid;
+        const cartographic = ellipsoid.cartesianToCartographic(cartesian);
+        const longitude = Cesium.Math.toDegrees(cartographic.longitude);
+        const latitude = Cesium.Math.toDegrees(cartographic.latitude);
+        const altitude = cartographic.height;
+        return {
+            longitude,
+            latitude,
+            altitude
+        };
     }
 }

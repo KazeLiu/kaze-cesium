@@ -5,16 +5,8 @@ import CesiumUtils from "./utils.js";
 export default class CesiumGeometry {
 
     constructor(viewer) {
-        this.utils = new CesiumUtils();
+        this.utils = new CesiumUtils(viewer);
         this.viewer = viewer;
-    }
-
-    /**
-     * 取消视角锁定
-     */
-    unlockCamera() {
-        this.viewer.trackedEntity = undefined;
-        this.viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY)
     }
 
     /**
@@ -22,7 +14,7 @@ export default class CesiumGeometry {
      * @param collectionName 类名称 默认defaultCollection
      * @param entity 点
      */
-    async addEntityToCollection(entity, collectionName = 'defaultCollection') {
+    addEntityToCollection(entity, collectionName = 'defaultCollection') {
         let find = this.viewer.dataSources.getByName(collectionName)
         if (find && find.length > 0) {
             find[0].entities.add(entity);
@@ -39,6 +31,13 @@ export default class CesiumGeometry {
         if (list && list.length > 0) {
             list[0].show = show;
         }
+    }
+
+    /**
+     * 查找entity
+     */
+    getEntityById(id) {
+        return this.viewer.entities.getById(id)
     }
 
     /**
@@ -93,7 +92,7 @@ export default class CesiumGeometry {
             })
         }
         this.addEntityToCollection(entity)
-        this.unlockCamera();
+        this.utils.unlockCamera();
         return entity;
     }
 }
