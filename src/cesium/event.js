@@ -4,8 +4,10 @@ import CesiumUtils from "./utils.js";
 
 
 // 事件监听的方法放这里
-export default class CesiumEvent{
+export default class CesiumEvent {
     _eventHandlers = {};
+    _type = 2; // type代表地图上动态操作的类型，使用changeMouseEventType改变 0/null:默认，其他类型会让左键点击获取entity失效 1:点，2:线，3:面
+
     constructor(viewer) {
         this.geometry = new CesiumGeometry(viewer);
         this.utils = new CesiumUtils(viewer);
@@ -54,29 +56,78 @@ export default class CesiumEvent{
         this._eventHandlers[eventName].forEach(handler => handler.apply(this, args));
     }
 
+    changeMouseEventType(type) {
+        if (type == 0) {
+            type = null;
+        }
+        this._type = type
+    }
+
+    /**
+     * 每个事件只能绑定一次Cesium.ScreenSpaceEventType，所以一般的处理方法就是在事件里面通过if判断来处理逻辑。
+     * event准备使用方法内全局枚举的方式区分业务逻辑
+     * @param handler
+     * @param viewer
+     */
     event(handler, viewer) {
+        let activeShapeEntity = []; // 这个是当前的数据，包含点线面Entity本身 点击右键的时候会通过geometryData方法返回
+        let activeShapePoint = []// 这个是当前的数据，包含点线面Entity的经纬度点 点击右键的时候会通过geometryData方法返回
         handler.setInputAction(evt => {
-            //设置监听方法
-            let scene = viewer.scene;
-            let pick = scene.pick(evt.position);
-            let cartesian = evt.position;
-            let info = {
-                position: cartesian,
-                id: pick?.id?.id
+            if (this._type != null) {
+                const pick = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.position), viewer.scene);
+                const position = this.utils.cartesian3ToDegree2(pick);
+                let info = {
+                    position,
+                    id: pick?.id?.id
+                }
+                this.trigger("contextMenu", info);
+            } else {
+                this.trigger("geometryData", {
+                    activeShapePoints: activeShapeEntity
+                });
+                activeShapeEntity = [];
             }
-            this.trigger("contextMenu", info);
         }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
 
         handler.setInputAction(evt => {
-            //设置监听方法
-            let pick = viewer.scene.pick(evt.position);
-            let position = this.utils.cartesian3ToDegree2(evt.position);
-            let entity = null;
-            if (pick?.id?.id) {
-                entity = this.geometry.getEntityById(pick?.id?.id)
+            const pick = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.position), viewer.scene);
+            const position = this.utils.cartesian3ToDegree2(pick);
+            if (this._type == 1) {
+                const point = viewer.entities.add({
+                    position: pick,
+                    point: {
+                        color: Cesium.Color.WHITE,
+                        pixelSize: 5,
+                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                    },
+                });
+                activeShapeEntity.push(point)
+            } else if (this._type == 2) {
+                const line = viewer.entities.add({
+                    polyline: {
+                        positions: new Cesium.CallbackProperty(function () {
+                            return activeShapeEntity;
+                        }, false),
+                        clampToGround: true,
+                        width: 3,
+                    },
+                });
+                activeShapeEntity.push(line)
+            } else {
+                // 这一段是返回点击的经纬度或者是entity点
+                const entityId = pick?.id?.id;
+                const entity = entityId ? this.geometry.getEntityById(entityId) : null;
+                const info = {id: entityId, position, entity};
+                this.trigger("handleClick", info);
             }
-            let info = {id: pick?.id?.id, position: position, entity};
-            this.trigger("handleClick", info);
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+        handler.setInputAction(evt => {
+            const pick = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.endPosition), viewer.scene);
+            if (this._type == 2 && activeShapeEntity.length > 0) {
+                debugger
+                // activeShapePoints[0].setValue(pick)
+            }
+        }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
     }
 }

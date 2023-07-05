@@ -95,4 +95,5 @@ export default class CesiumGeometry {
         this.utils.unlockCamera();
         return entity;
     }
+
 }
