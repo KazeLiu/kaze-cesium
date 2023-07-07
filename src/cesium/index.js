@@ -3,6 +3,11 @@ import CesiumUtils from "./utils.js";
 import CesiumGeometry from "./geometry.js";
 import CesiumEvent from "./event.js"
 
+/**
+ * 配置总览：
+ * 初始化的option是cesium的内容，包含Cesium.Viewer的全部设置项目，详见 https://cesium.com/learn/cesiumjs/ref-doc/Viewer.html#.ConstructorOptions
+ * 点线面的默认颜色大小粗细配置在
+ */
 
 export default class CesiumKaze extends mixinsCLass(CesiumInit, CesiumGeometry, CesiumUtils, CesiumEvent) {
     constructor(domId, option) {

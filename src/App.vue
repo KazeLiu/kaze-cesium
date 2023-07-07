@@ -13,25 +13,17 @@ onMounted(async () => {
   await cesium.cesium.init();
   cesium.cesium.addMarker({
     iconImage: `/public/logo.jpg`,
-    name: '原批',
+    name: '原神！启动！',
     scale: 0.50,
     position: [112, 29]
-  })
-  cesium.cesium.addMarker({
-    iconImage: `/public/logo.jpg`,
-    name: '原批2',
-    scale: 0.50,
-    position: [110, 35]
-  })
-  cesium.cesium.addMarker({
-    iconImage: `/public/logo.jpg`,
-    name: '原批3',
-    scale: 0.50,
-    position: [112, 38]
   })
   cesium.cesium.changeCollectionShowAndHide(false, 'haha')
   cesium.cesium.on('contextMenu',res=>{
     console.log(res)
+  })
+  cesium.cesium.on('draw',res=>{
+    console.log(res)
+    res[0].label.text.setValue("原神！启动！！")
   })
 })
 const cesium = reactive({

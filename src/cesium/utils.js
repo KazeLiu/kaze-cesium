@@ -7,6 +7,19 @@ export default class CesiumUtils {
     }
 
     /**
+     * js生成uuid
+     */
+    generateUUID() {
+        let d = new Date().getTime()
+        let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            let r = (d + Math.random() * 16) % 16 | 0
+            d = Math.floor(d / 16)
+            return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16)
+        })
+        return uuid
+    }
+
+    /**
      * 转化为地图用的颜色
      */
     colorToCesiumRGB(color, alpha) {
@@ -43,9 +56,42 @@ export default class CesiumUtils {
     }
 
     /**
+     * 判断是不是世界坐标系 如果是世界坐标系直接返回，如果是经纬度就转化为世界坐标系返回，接受一个世界坐标系或者坐标系组
+     */
+     convertToCartesian(position) {
+        if (Array.isArray(position)) {
+            if (position[0] instanceof Cesium.Cartesian3) {
+                // 数组里面第一个是Cartesian3对象，判定为整个数组都是Cartesian3，直接返回
+                return position;
+            } else if (Array.isArray(position[0])) {
+                // [[xx, yy], [xx, yy]]
+                // 循环position数组，将每个数组转换为世界坐标系
+                return position.map(pos => {
+                    if (pos instanceof Cesium.Cartesian3) {
+                        return pos;
+                    } else {
+                        return Cesium.Cartesian3.fromDegrees(...pos);
+                    }
+                });
+            } else {
+                // [xx, yy]
+                // 将数字转换为世界坐标系
+                return Cesium.Cartesian3.fromDegrees(...position);
+            }
+        } else if (position instanceof Cesium.Cartesian3) {
+            // 不是数组，直接判断是否是Cartesian3对象
+            return position;
+        } else {
+            console.log(position + "，它不是地球坐标系，也不是经纬度的数组");
+        }
+    }
+
+
+
+    /**
      * 世界坐标系转经纬度
      */
-    cartesian3ToDegree2(cartesian){
+    cartesian3ToDegree2(cartesian) {
         const ellipsoid = this.viewer.scene.globe.ellipsoid;
         const cartographic = ellipsoid.cartesianToCartographic(cartesian);
         const longitude = Cesium.Math.toDegrees(cartographic.longitude);

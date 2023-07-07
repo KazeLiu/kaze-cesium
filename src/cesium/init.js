@@ -8,6 +8,7 @@ export default class CesiumInit {
         Cesium.Camera.DEFAULT_VIEW_RECTANGLE = Cesium.Rectangle.fromDegrees(89.5, 20.4, 110.4, 61.2);
         // 新建地球视图
         this.viewer = new Cesium.Viewer(domId, Object.assign({
+            terrain: Cesium.Terrain.fromWorldTerrain(),
             infoBox: false,
             baseLayerPicker: false, // 图层小部件
             geocoder: false, // 搜索按钮
@@ -41,7 +42,11 @@ export default class CesiumInit {
         this.viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK);
         // 初始化组
         let promiseList = [];
-        [...new Set(['defaultCollection', ...this.dataSourceList])].forEach(name => {
+        // 这个是分组，能批量控制图标，每个项目不一样，需要自己设置dataSourceList
+        // 项目中默认添加两个defaultCollection和defaultDraw
+        // 添加的实体但是没有规定类别时全部添加到defaultCollection
+        // 手动画的点线面归类到defaultDraw
+        [...new Set(['defaultCollection','defaultDraw', ...this.dataSourceList])].forEach(name => {
             const dataSource = new Cesium.CustomDataSource(name);
             promiseList.push(this.viewer.dataSources.add(dataSource));
         })
