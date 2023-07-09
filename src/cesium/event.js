@@ -1,7 +1,6 @@
 import * as Cesium from "cesium";
 import CesiumGeometry from "./geometry.js";
 import CesiumUtils from "./utils.js";
-import area from "@turf/area";
 
 // 事件监听的方法放这里
 export default class CesiumEvent {
@@ -78,7 +77,7 @@ export default class CesiumEvent {
         let activeEntity = null;
         // 这个是当前正在画的实体，是线面本身，因为它每次只会画一个，所以是对象。在右键后把数据传到addLine，addPolygon方法后删除
         let drewEntity = null;
-        // 画点专用，因为标点是添加多个实体，所以画点用markerList。 在右键后把数据传到addMarker方法后删除
+        // 在线面类型表示弯折点，点类型表示List
         let markerList = [];
 
         /**
@@ -93,6 +92,10 @@ export default class CesiumEvent {
             viewer.entities.remove(drewEntity);
             activeEntity = null;
             drewEntity = null;
+            markerList.map(x => {
+                viewer.entities.remove(x);
+            })
+            markerList = [];
             if (saveEntity) {
                 activeShapePoint.pop();
                 if (that._type == 1) {
@@ -102,10 +105,6 @@ export default class CesiumEvent {
                             position: x
                         }));
                     })
-                    markerList.map(x => {
-                        viewer.entities.remove(x);
-                    })
-                    markerList = [];
                 } else if (that._type == 2) {
                     entityList = that.geometry.addLine({positions: activeShapePoint}, 'defaultDraw');
                 } else if (that._type == 3) {
@@ -131,49 +130,13 @@ export default class CesiumEvent {
                 const info = {id: entityId, position, entity};
                 this.trigger("handleClick", info);
             } else {
-                // 添加起始点和根据type添加动态点
-                if (!activeEntity) {
-                    activeEntity = viewer.entities.add({
-                        position: pick, point: {
-                            color: Cesium.Color.WHITE,
-                            pixelSize: 5,
-                            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-                        }
-                    });
-
-                    if (this._showDistance) {
-                        activeEntity.label = new Cesium.LabelGraphics({
-                            text: "请继续打点",
-                            fillColor: Cesium.Color.WHITE,
-                            showBackground: true,
-                            backgroundColor: Cesium.Color.BLACK.withAlpha(0.75),
-                            style: Cesium.LabelStyle.FILL,
-                            pixelOffset: new Cesium.Cartesian2(0, 40),
-                            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-                            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-                            font: '14px microsoft YaHei'
-                        })
-                    }
-                    activeShapePoint.push(pick);
-                }
-
-                // 画点
-                if (this._type === 1) {
-                    activeEntity = viewer.entities.add({
-                        position: pick, point: {
-                            color: Cesium.Color.WHITE,
-                            pixelSize: 10,
-                            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-                        },
-                    });
-                    markerList.push(viewer.entities.add({
-                        position: pick, point: {
-                            color: Cesium.Color.WHITE,
-                            pixelSize: 10,
-                            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-                        },
-                    }));
-                }
+                markerList.push(viewer.entities.add({
+                    position: pick, point: {
+                        color: Cesium.Color.WHITE,
+                        pixelSize: 10,
+                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                    },
+                }));
 
                 // 画线面
                 if (!drewEntity) {
@@ -219,29 +182,57 @@ export default class CesiumEvent {
 
         // 移动
         handler.setInputAction(evt => {
-            if (Cesium.defined(activeEntity)) {
-                const pick = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.endPosition), viewer.scene);
-                if (Cesium.defined(pick) && activeShapePoint.length > 0) {
-                    activeEntity.position.setValue(pick)
-                    activeShapePoint.pop();
-                    activeShapePoint.push(pick);
-                    // 线条计算长度 多边形计算长度面积
-                    if (this._showDistance) {
-                        let length = 0;
-                        // 计算长度
-                        for (let i = 1; i < activeShapePoint.length; i++) {
-                            length += this.utils.computePointDistance(activeShapePoint[i], activeShapePoint[i - 1]);
-                        }
-                        if (this._type == 2) {
-                            activeEntity.label.text = new Cesium.ConstantProperty(`共${length.toFixed(2)}米`);
-                        }
-                        // 面积计算未包含起伏山地的计算 只有投影大小
-                        if (this._type == 3 && activeShapePoint.length > 2) {
-                            let area = this.utils.computePolygonArea(activeShapePoint);
-                            // 周长还需要添加一个末尾点到起始点的距离
-                            length += this.utils.computePointDistance(activeShapePoint[activeShapePoint.length - 1], activeShapePoint[0]);
-                            activeEntity.label.text = new Cesium.ConstantProperty(`周长${length.toFixed(2)}米，面积${area.toFixed(2)}平方米`);
-                        }
+            const pick = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.endPosition), viewer.scene);
+            // 添加起始点和根据type添加动态点
+            if (!Cesium.defined(activeEntity) && Cesium.defined(pick)) {
+                activeEntity = viewer.entities.add({
+                    position: pick,
+                    point: {
+                        color: Cesium.Color.WHITE,
+                        pixelSize: 5,
+                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                    }
+                });
+
+                if (this._showDistance) {
+                    activeEntity.label = new Cesium.LabelGraphics({
+                        text: "请标记",
+                        fillColor: Cesium.Color.WHITE,
+                        showBackground: true,
+                        backgroundColor: Cesium.Color.BLACK.withAlpha(0.75),
+                        style: Cesium.LabelStyle.FILL,
+                        pixelOffset: new Cesium.Cartesian2(0, 40),
+                        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                        font: '14px microsoft YaHei'
+                    })
+                }
+                activeShapePoint.push(pick);
+            } else if (Cesium.defined(pick) && activeShapePoint.length > 0) {
+                activeEntity.position.setValue(pick)
+                activeShapePoint.pop();
+                activeShapePoint.push(pick);
+                // 线条计算长度 多边形计算长度面积
+                if (this._showDistance) {
+                    if (this._type == 1) {
+                        let location = this.utils.cartesian3ToDegree2(pick);
+                        activeEntity.label.text = new Cesium.ConstantProperty(`${location.longitude.toFixed(6)},${location.latitude.toFixed(6)}`);
+                        return;
+                    }
+                    let length = 0;
+                    // 计算长度
+                    for (let i = 1; i < activeShapePoint.length; i++) {
+                        length += this.utils.computePointDistance(activeShapePoint[i], activeShapePoint[i - 1]);
+                    }
+                    if (this._type == 2) {
+                        activeEntity.label.text = new Cesium.ConstantProperty(`共${length.toFixed(2)}米`);
+                    }
+                    // 面积计算未包含起伏山地的计算 只有投影大小
+                    if (this._type == 3 && activeShapePoint.length > 2) {
+                        let area = this.utils.computePolygonArea(activeShapePoint);
+                        // 周长还需要添加一个末尾点到起始点的距离
+                        length += this.utils.computePointDistance(activeShapePoint[activeShapePoint.length - 1], activeShapePoint[0]);
+                        activeEntity.label.text = new Cesium.ConstantProperty(`周长${length.toFixed(2)}米，面积${area.toFixed(2)}平方米`);
                     }
                 }
             }
