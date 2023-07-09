@@ -79,6 +79,8 @@ export default class CesiumEvent {
         let drewEntity = null;
         // 在线面类型表示弯折点，点类型表示List
         let markerList = [];
+        // 当前正在画的实体的id，鼠标点一下，图形多一个点，这个index+1，用于后期按住alt+鼠标左边点击圆点时找到被选的正在画的实体的坐标
+        let drewMarkerIndex = 0;
 
         /**
          * 停止画线面
@@ -88,6 +90,7 @@ export default class CesiumEvent {
             // 右键后返回的值 通过修改entity来调整实体的样式和数据
             // 点返回数组，线面返回对象
             let entityList = null;
+            drewMarkerIndex = 0
             viewer.entities.remove(activeEntity);
             viewer.entities.remove(drewEntity);
             activeEntity = null;
@@ -117,23 +120,24 @@ export default class CesiumEvent {
 
         // 左键
         handler.setInputAction(evt => {
-            const pick = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.position), viewer.scene);
-            if (!Cesium.defined(pick)) {
-                return;
-            }
-            const position = this.utils.cartesian3ToDegree2(pick);
-
             if (!this._type) {
                 // 返回点击的经纬度或者是entity点
+                const pick = viewer.scene.pick(evt.position)
+                const position = this.utils.cartesian3ToDegree2(pick);
                 const entityId = pick?.id?.id;
                 const entity = entityId ? this.geometry.getEntityById(entityId) : null;
                 const info = {id: entityId, position, entity};
                 this.trigger("handleClick", info);
             } else {
+                const pick = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.position), viewer.scene);
+                if (!Cesium.defined(pick)) {
+                    return;
+                }
                 markerList.push(viewer.entities.add({
+                    description: 'kazeId-' + drewMarkerIndex++,
                     position: pick, point: {
                         color: Cesium.Color.WHITE,
-                        pixelSize: 10,
+                        pixelSize: 16,
                         heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
                     },
                 }));
@@ -163,6 +167,11 @@ export default class CesiumEvent {
                 }
                 activeShapePoint.push(pick);
             }
+
+            // 防止取消监听失败
+            markerList.map(x => x.label = undefined)
+            handler.removeInputAction(Cesium.ScreenSpaceEventType.MOUSE_MOVE, Cesium.KeyboardEventModifier.ALT);
+            handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_UP, Cesium.KeyboardEventModifier.ALT);
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
 
@@ -195,17 +204,7 @@ export default class CesiumEvent {
                 });
 
                 if (this._showDistance) {
-                    activeEntity.label = new Cesium.LabelGraphics({
-                        text: "请标记",
-                        fillColor: Cesium.Color.WHITE,
-                        showBackground: true,
-                        backgroundColor: Cesium.Color.BLACK.withAlpha(0.75),
-                        style: Cesium.LabelStyle.FILL,
-                        pixelOffset: new Cesium.Cartesian2(0, 40),
-                        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-                        font: '14px microsoft YaHei'
-                    })
+                    this.geometry.markerAddLabel(activeEntity, "请标记")
                 }
                 activeShapePoint.push(pick);
             } else if (Cesium.defined(pick) && activeShapePoint.length > 0) {
@@ -216,7 +215,7 @@ export default class CesiumEvent {
                 if (this._showDistance) {
                     if (this._type == 1) {
                         let location = this.utils.cartesian3ToDegree2(pick);
-                        activeEntity.label.text = new Cesium.ConstantProperty(`${location.longitude.toFixed(6)},${location.latitude.toFixed(6)}`);
+                        this.geometry.markerAddLabel(activeEntity, `${location.longitude.toFixed(6)},${location.latitude.toFixed(6)}`)
                         return;
                     }
                     let length = 0;
@@ -225,17 +224,63 @@ export default class CesiumEvent {
                         length += this.utils.computePointDistance(activeShapePoint[i], activeShapePoint[i - 1]);
                     }
                     if (this._type == 2) {
-                        activeEntity.label.text = new Cesium.ConstantProperty(`共${length.toFixed(2)}米`);
+                        this.geometry.markerAddLabel(activeEntity, `共${length.toFixed(2)}米`)
                     }
                     // 面积计算未包含起伏山地的计算 只有投影大小
                     if (this._type == 3 && activeShapePoint.length > 2) {
                         let area = this.utils.computePolygonArea(activeShapePoint);
                         // 周长还需要添加一个末尾点到起始点的距离
                         length += this.utils.computePointDistance(activeShapePoint[activeShapePoint.length - 1], activeShapePoint[0]);
-                        activeEntity.label.text = new Cesium.ConstantProperty(`周长${length.toFixed(2)}米，面积${area.toFixed(2)}平方米`);
+                        this.geometry.markerAddLabel(activeEntity, `周长${length.toFixed(2)}米，面积${area.toFixed(2)}平方米`)
                     }
                 }
             }
         }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+
+
+        // 在已经画好的图形上修改 初步想法是按住ALT，跟踪鼠标的activeEntity隐藏，然后鼠标左键拖拽点
+        handler.setInputAction(evt => {
+            // 隐藏activeEntity
+            let pick = viewer.scene.pick(evt.position);
+            let description = pick?.id?.description;
+            let value = description ? description.getValue() : null;
+
+            if (value) {
+                let index = value.split('-')[1];
+                handler.setInputAction(evt => {
+                    const movePick = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.endPosition), viewer.scene);
+                    if (Cesium.defined(movePick)) {
+                        // 改图形点
+                        activeShapePoint[index] = movePick;
+                        // 改markerList
+                        markerList[index].position.setValue(movePick);
+                        let location = this.utils.cartesian3ToDegree2(movePick);
+                        this.geometry.markerAddLabel(markerList[index], `${location.longitude.toFixed(6)},${location.latitude.toFixed(6)}`)
+                    }
+                }, Cesium.ScreenSpaceEventType.MOUSE_MOVE, Cesium.KeyboardEventModifier.ALT)
+                handler.setInputAction(evt => {
+                    markerList[index].label = undefined;
+                    handler.removeInputAction(Cesium.ScreenSpaceEventType.MOUSE_MOVE, Cesium.KeyboardEventModifier.ALT);
+                    handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_UP, Cesium.KeyboardEventModifier.ALT);
+                }, Cesium.ScreenSpaceEventType.LEFT_UP, Cesium.KeyboardEventModifier.ALT)
+            }
+        }, Cesium.ScreenSpaceEventType.LEFT_DOWN, Cesium.KeyboardEventModifier.ALT)
+
+        let popPoint = null;
+        // 监听键盘按下事件
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Alt') {
+                activeEntity.show = false;
+                // popPoint = activeShapePoint.pop();
+            }
+        });
+        // 监听键盘按下事件
+        document.addEventListener('keyup', function (event) {
+            if (event.key === 'Alt') {
+                activeEntity.show = true;
+                // activeShapePoint.push(popPoint);
+                popPoint = null;
+            }
+        });
     }
 }

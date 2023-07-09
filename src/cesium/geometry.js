@@ -86,8 +86,25 @@ export default class CesiumGeometry {
             })
         }
         if (info.hasLabel) {
+            this.markerAddLabel(entity, info.name)
+        }
+        this.addEntityToCollection(entity, collectionName)
+        this.utils.unlockCamera();
+        return entity;
+    }
+
+    /**
+     * 点添加文字 如果本来有文字则修改 否则添加
+     * @param entity
+     * @param text
+     * @param force 是否强制初始化
+     */
+    markerAddLabel(entity, text, force = false) {
+        if (entity.label && entity.label instanceof Cesium.LabelGraphics && !force) {
+            entity.label.text = new Cesium.ConstantProperty(text);
+        } else {
             entity.label = new Cesium.LabelGraphics({
-                text: info.name,
+                text: text,
                 fillColor: Cesium.Color.WHITE,
                 showBackground: true,
                 backgroundColor: this.utils.colorToCesiumRGB('#000000', 0.5),
@@ -95,12 +112,9 @@ export default class CesiumGeometry {
                 pixelOffset: new Cesium.Cartesian2(0, 40),
                 verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
                 heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-                font: '13px microsoft YaHei',
+                font: '14px microsoft YaHei',
             })
         }
-        this.addEntityToCollection(entity, collectionName)
-        this.utils.unlockCamera();
-        return entity;
     }
 
     /**

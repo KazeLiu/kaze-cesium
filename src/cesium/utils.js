@@ -121,7 +121,7 @@ export default class CesiumUtils {
         if (polygonPointList.length <= 2) {
             return 0
         }
-        // https://juejin.cn/post/7046566741438103583
+        // 使用海伦公式 https://juejin.cn/post/7046566741438103583
         let array = []
         for (let i = 0, len = polygonPointList.length; i < len; i++) {
             let cartographic = this.cartesian3ToDegree2(polygonPointList[i])
@@ -129,6 +129,7 @@ export default class CesiumUtils {
             let latitude = Cesium.Math.toDegrees(cartographic.latitude).toFixed(6)
             array.push({x: longitude, y: latitude})
         }
+
         let arrS = []
         let temS = []
         arrS.push(temS)

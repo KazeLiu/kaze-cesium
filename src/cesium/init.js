@@ -40,6 +40,7 @@ export default class CesiumInit {
         // 禁止默认点击事件、双击事件
         this.viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
         this.viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK);
+        this.viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.KeyboardEventModifier.ALT);
         // 初始化组
         let promiseList = [];
         // 这个是分组，能批量控制图标，每个项目不一样，需要自己设置dataSourceList
