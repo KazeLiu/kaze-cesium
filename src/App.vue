@@ -5,12 +5,11 @@
 </template>
 
 <script setup>
-import {onMounted, reactive} from "vue";
+import {onMounted} from "vue";
 import CesiumKaze from "./cesium/index.js";
 
 onMounted(async () => {
   let cesium = new CesiumKaze('cesium-dom')
-  cesium = new CesiumKaze('cesium-dom');
   await cesium.init();
   cesium.addMarker({
     iconImage: `/public/logo.jpg`,
@@ -22,10 +21,10 @@ onMounted(async () => {
   cesium.on('contextMenu', res => {
     console.log(res)
   })
-  cesium.on('draw', res => {
-    console.log(res)
-    res[0].label.text.setValue("原神！启动！！")
-  })
+  // cesium.on('draw', res => {
+  //   console.log(res)
+  //   res[0].label.text.setValue("原神！启动！！")
+  // })
 })
 </script>
 

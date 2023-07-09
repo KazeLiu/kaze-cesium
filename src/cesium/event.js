@@ -1,11 +1,13 @@
 import * as Cesium from "cesium";
 import CesiumGeometry from "./geometry.js";
 import CesiumUtils from "./utils.js";
+import area from "@turf/area";
 
 // 事件监听的方法放这里
 export default class CesiumEvent {
     _eventHandlers = {};
-    _type = 1; // type代表地图上动态操作的类型，使用changeMouseEventType改变 0/null:默认，其他类型会让左键点击获取entity失效 1:点，2:线，3:面
+    _type = 3; // type代表地图上动态操作的类型，使用changeMouseEventType改变 0/null:默认，其他类型会让左键点击获取entity失效 1:点，2:线，3:面
+    _showDistance = true; // 在线面的情况下  是否显示长度和周长与面积
 
     constructor(viewer) {
         this.geometry = new CesiumGeometry(viewer);
@@ -72,7 +74,7 @@ export default class CesiumEvent {
         let that = this;
         // 这个是当前的经纬度列表，包含点线面Entity的经纬度点。点击右键的时候会通过监听geometryData方法返回
         let activeShapePoint = [];
-        // 这个实体，是一个点，会随着鼠标移动而更改，在右键后删除
+        // 这个实体，是一个点，会随着鼠标移动而更改，每次右键后删除
         let activeEntity = null;
         // 这个是当前正在画的实体，是线面本身，因为它每次只会画一个，所以是对象。在右键后把数据传到addLine，addPolygon方法后删除
         let drewEntity = null;
@@ -132,29 +134,40 @@ export default class CesiumEvent {
                 // 添加起始点和根据type添加动态点
                 if (!activeEntity) {
                     activeEntity = viewer.entities.add({
-                        position: pick,
-                        point: {
+                        position: pick, point: {
                             color: Cesium.Color.WHITE,
                             pixelSize: 5,
                             heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-                        },
+                        }
                     });
+
+                    if (this._showDistance) {
+                        activeEntity.label = new Cesium.LabelGraphics({
+                            text: "请继续打点",
+                            fillColor: Cesium.Color.WHITE,
+                            showBackground: true,
+                            backgroundColor: Cesium.Color.BLACK.withAlpha(0.75),
+                            style: Cesium.LabelStyle.FILL,
+                            pixelOffset: new Cesium.Cartesian2(0, 40),
+                            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                            font: '14px microsoft YaHei'
+                        })
+                    }
                     activeShapePoint.push(pick);
                 }
 
                 // 画点
                 if (this._type === 1) {
                     activeEntity = viewer.entities.add({
-                        position: pick,
-                        point: {
+                        position: pick, point: {
                             color: Cesium.Color.WHITE,
                             pixelSize: 10,
                             heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
                         },
                     });
                     markerList.push(viewer.entities.add({
-                        position: pick,
-                        point: {
+                        position: pick, point: {
                             color: Cesium.Color.WHITE,
                             pixelSize: 10,
                             heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
@@ -171,7 +184,7 @@ export default class CesiumEvent {
                                 positions: new Cesium.CallbackProperty(() => activeShapePoint, false),
                                 clampToGround: true,
                                 width: 3,
-                            },
+                            }
                         };
                     } else if (this._type === 3) {
                         shapeEntityOptions = {
@@ -196,8 +209,7 @@ export default class CesiumEvent {
                 const pick = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.position), viewer.scene);
                 const position = this.utils.cartesian3ToDegree2(pick);
                 let info = {
-                    position,
-                    id: pick?.id?.id
+                    position, id: pick?.id?.id
                 }
                 this.trigger("contextMenu", info);
             } else {
@@ -213,6 +225,24 @@ export default class CesiumEvent {
                     activeEntity.position.setValue(pick)
                     activeShapePoint.pop();
                     activeShapePoint.push(pick);
+                    // 线条计算长度 多边形计算长度面积
+                    if (this._showDistance) {
+                        let length = 0;
+                        // 计算长度
+                        for (let i = 1; i < activeShapePoint.length; i++) {
+                            length += this.utils.computePointDistance(activeShapePoint[i], activeShapePoint[i - 1]);
+                        }
+                        if (this._type == 2) {
+                            activeEntity.label.text = new Cesium.ConstantProperty(`共${length.toFixed(2)}米`);
+                        }
+                        // 面积计算未包含起伏山地的计算 只有投影大小
+                        if (this._type == 3 && activeShapePoint.length > 2) {
+                            let area = this.utils.computePolygonArea(activeShapePoint);
+                            // 周长还需要添加一个末尾点到起始点的距离
+                            length += this.utils.computePointDistance(activeShapePoint[activeShapePoint.length - 1], activeShapePoint[0]);
+                            activeEntity.label.text = new Cesium.ConstantProperty(`周长${length.toFixed(2)}米，面积${area.toFixed(2)}平方米`);
+                        }
+                    }
                 }
             }
         }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);

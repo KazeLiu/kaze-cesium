@@ -1,5 +1,6 @@
 // 基础计算方法放这里 比如坐标系转换 颜色转化 视角锁定解锁
 import * as Cesium from "cesium";
+import area from "@turf/area";
 
 export default class CesiumUtils {
     constructor(viewer) {
@@ -58,7 +59,7 @@ export default class CesiumUtils {
     /**
      * 判断是不是世界坐标系 如果是世界坐标系直接返回，如果是经纬度就转化为世界坐标系返回，接受一个世界坐标系或者坐标系组
      */
-     convertToCartesian(position) {
+    convertToCartesian(position) {
         if (Array.isArray(position)) {
             if (position[0] instanceof Cesium.Cartesian3) {
                 // 数组里面第一个是Cartesian3对象，判定为整个数组都是Cartesian3，直接返回
@@ -86,21 +87,76 @@ export default class CesiumUtils {
         }
     }
 
-
-
     /**
      * 世界坐标系转经纬度
+     * 在Cesium中，Cesium.Cartographic.fromCartesian 方法无法只能使用 WGS84 椭球体。
      */
     cartesian3ToDegree2(cartesian) {
-        const ellipsoid = this.viewer.scene.globe.ellipsoid;
-        const cartographic = ellipsoid.cartesianToCartographic(cartesian);
-        const longitude = Cesium.Math.toDegrees(cartographic.longitude);
-        const latitude = Cesium.Math.toDegrees(cartographic.latitude);
-        const altitude = cartographic.height;
-        return {
-            longitude,
-            latitude,
-            altitude
-        };
+        return Cesium.Cartographic.fromCartesian(cartesian)
+        // const ellipsoid = this.viewer.scene.globe.ellipsoid;
+        // const cartographic = ellipsoid.cartesianToCartographic(cartesian);
+        // const longitude = Cesium.Math.toDegrees(cartographic.longitude);
+        // const latitude = Cesium.Math.toDegrees(cartographic.latitude);
+        // const altitude = cartographic.height;
+        // return {
+        //     longitude,
+        //     latitude,
+        //     altitude
+        // };
+    }
+
+    /**
+     * 长度计算
+     * @param point1
+     * @param point2
+     */
+    computePointDistance(point1, point2) {
+        return Cesium.Cartesian3.distance(this.convertToCartesian(point1), this.convertToCartesian(point2));
+    }
+
+    /**
+     * 计算面积
+     * @param polygonPointList
+     */
+    computePolygonArea(polygonPointList) {
+        if (polygonPointList.length <= 2) {
+            return 0
+        }
+        // https://juejin.cn/post/7046566741438103583
+        let array = []
+        for (let i = 0, len = polygonPointList.length; i < len; i++) {
+            let cartographic = this.cartesian3ToDegree2(polygonPointList[i])
+            let longitude = Cesium.Math.toDegrees(cartographic.longitude).toFixed(6)
+            let latitude = Cesium.Math.toDegrees(cartographic.latitude).toFixed(6)
+            array.push({x: longitude, y: latitude})
+        }
+        let arrS = []
+        let temS = []
+        arrS.push(temS)
+        for (let i = 0, len = array.length; i < len; i++) {
+            temS.push([array[i].x, array[i].y])
+        }
+        let polygons = {
+            type: 'FeatureCollection',
+            features: [
+                {
+                    type: 'Feature',
+                    properties: {},
+                    geometry: {
+                        type: 'Polygon',
+                        coordinates: arrS
+                    }
+                },
+                {
+                    type: 'Feature',
+                    properties: {},
+                    geometry: {
+                        type: 'Polygon',
+                        coordinates: [[[0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]]
+                    }
+                }
+            ]
+        }
+        return area(polygons)
     }
 }

@@ -72,18 +72,18 @@ export default class CesiumGeometry {
 
         });
         if (info.iconImage) {
-            entity.billboard = {
+            entity.billboard = new Cesium.BillboardGraphics({
                 image: info.iconImage,
                 scale: info.scale,
                 rotation: info.rotation,
                 heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
-            }
+            })
         } else {
-            entity.point = {
+            entity.point = new Cesium.PointGraphics({
                 color: Cesium.Color.WHITE,
                 pixelSize: 20,
                 heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-            }
+            })
         }
         if (info.hasLabel) {
             entity.label = new Cesium.LabelGraphics({
@@ -91,9 +91,7 @@ export default class CesiumGeometry {
                 fillColor: Cesium.Color.WHITE,
                 showBackground: true,
                 backgroundColor: this.utils.colorToCesiumRGB('#000000', 0.5),
-                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                outlineColor: Cesium.Color.RED,
-                outlineWidth: 0,
+                style: Cesium.LabelStyle.FILL,
                 pixelOffset: new Cesium.Cartesian2(0, 40),
                 verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
                 heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
