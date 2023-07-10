@@ -52,8 +52,22 @@ export default class CesiumUtils {
      * 取消视角锁定
      */
     unlockCamera() {
-        this.viewer.trackedEntity = undefined;
-        this.viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY)
+        this.viewer.scene.screenSpaceCameraController.enableRotate = true;
+        this.viewer.scene.screenSpaceCameraController.enableTranslate = true;
+        this.viewer.scene.screenSpaceCameraController.enableZoom = true;
+        this.viewer.scene.screenSpaceCameraController.enableTilt = true;
+        this.viewer.scene.screenSpaceCameraController.enableLook = true;
+    }
+
+    /**
+     * 取消视角锁定
+     */
+    lockCamera() {
+        this.viewer.scene.screenSpaceCameraController.enableRotate = false;
+        this.viewer.scene.screenSpaceCameraController.enableTranslate = false;
+        this.viewer.scene.screenSpaceCameraController.enableZoom = false;
+        this.viewer.scene.screenSpaceCameraController.enableTilt = false;
+        this.viewer.scene.screenSpaceCameraController.enableLook = false;
     }
 
     /**

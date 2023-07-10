@@ -7,7 +7,9 @@ import * as turf from "@turf/turf";
 // 事件监听的方法放这里
 export default class CesiumEvent {
     _eventHandlers = {};
-    _type = 3; // type代表地图上动态操作的类型，使用changeMouseEventType改变 0/null:默认，其他类型会让左键点击获取entity失效 1:点，2:线，3:面
+    // type代表地图上动态操作的类型，使用changeMouseEventType改变
+    // 0|null:默认。其他类型会让左键点击获取entity失效 1:画点，2:画线，3:画面，4:面掏洞，5：移动图标
+    _type = 5;
     _showDistance = true; // 在线面的情况下  是否显示长度和周长与面积
 
     constructor(viewer) {
@@ -77,11 +79,11 @@ export default class CesiumEvent {
         let activeShapePoint = [];
         // 这个实体，是一个点，会随着鼠标移动而更改，每次右键后删除
         let activeEntity = null;
-        // 这个是当前正在画的实体，是线面本身，因为它每次只会画一个，所以是对象。在右键后把数据传到addLine，addPolygon方法后删除
+        // 这个是当前正在画的实体（type=1,2,3,4）或者是移动图标的图标信息（type=5），是线面本身，因为它每次只会画一个，所以是对象。在右键后把数据传到addLine，addPolygon方法后删除
         let drewEntity = null;
-        // 在线面类型表示弯折点，点类型表示List
+        // 在线面类型表示弯折点（type=1,2,3,4），点类型表示点列表（type=0|null）
         let markerList = [];
-        // 当前正在画的实体的id，鼠标点一下，图形多一个点，这个index+1，用于后期按住alt+鼠标左边点击圆点时找到被选的正在画的实体的坐标
+        // 当前正在画的实体的id，鼠标点一下，图形多一个点，这个index+1，用于后期按住alt+鼠标点击圆点时找到被选的正在画的实体的那个拐角坐标
         let drewMarkerIndex = 0;
 
         /**
@@ -143,6 +145,7 @@ export default class CesiumEvent {
                             })
                             if (isError) {
                                 alert("洞相交，当前图形作废")
+                                that.trigger('kazeError', "洞相交，当前图形作废")
                                 return;
                             }
                             // 判定是否包含在这个entity内
@@ -154,6 +157,7 @@ export default class CesiumEvent {
                                 entity.polygon.hierarchy = hierarchy
                             } else {
                                 alert("父级未完全包含洞，当前图形作废")
+                                that.trigger('kazeError', "父级未完全包含洞，当前图形作废")
                                 return;
                             }
                         });
@@ -220,7 +224,6 @@ export default class CesiumEvent {
             handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_UP, Cesium.KeyboardEventModifier.ALT);
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-
         // 右键
         handler.setInputAction(evt => {
             if (this._type == null) {
@@ -238,50 +241,73 @@ export default class CesiumEvent {
         // 移动
         handler.setInputAction(evt => {
             const pick = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.endPosition), viewer.scene);
-            // 添加起始点和根据type添加动态点
-            if (!Cesium.defined(activeEntity) && Cesium.defined(pick)) {
-                activeEntity = viewer.entities.add({
-                    position: pick,
-                    point: {
-                        color: Cesium.Color.WHITE,
-                        pixelSize: 5,
-                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-                    }
-                });
+            if (this._type == 1 || this._type == 2 || this._type == 3 || this._type == 4) {
+                // 添加起始点和根据type添加动态点 type = 1,2,3,4
+                if (!Cesium.defined(activeEntity) && Cesium.defined(pick)) {
+                    activeEntity = viewer.entities.add({
+                        position: pick,
+                        point: {
+                            color: Cesium.Color.WHITE,
+                            pixelSize: 5,
+                            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                        }
+                    });
 
-                if (this._showDistance) {
-                    this.geometry.markerAddLabel(activeEntity, "请标记")
+                    if (this._showDistance) {
+                        this.geometry.markerAddLabel(activeEntity, "请标记")
+                    }
+                    activeShapePoint.push(pick);
+                } else if (Cesium.defined(pick) && activeShapePoint.length > 0) {
+                    activeEntity.position.setValue(pick)
+                    activeShapePoint.pop();
+                    activeShapePoint.push(pick);
+                    // 线条计算长度 多边形计算长度面积
+                    if (this._showDistance) {
+                        if (this._type == 1) {
+                            let location = this.utils.cartesian3ToDegree2(pick);
+                            this.geometry.markerAddLabel(activeEntity, `${location.longitude.toFixed(6)},${location.latitude.toFixed(6)}`)
+                            return;
+                        }
+                        let length = 0;
+                        // 计算长度
+                        for (let i = 1; i < activeShapePoint.length; i++) {
+                            length += this.utils.computePointDistance(activeShapePoint[i], activeShapePoint[i - 1]);
+                        }
+                        if (this._type == 2) {
+                            this.geometry.markerAddLabel(activeEntity, `共${length.toFixed(2)}米`)
+                        }
+                        // 面积计算未包含起伏山地的计算 只有投影大小
+                        if ((this._type == 3 || this._type == 4) && activeShapePoint.length > 2) {
+                            let area = this.utils.computePolygonArea(activeShapePoint);
+                            // 周长还需要添加一个末尾点到起始点的距离
+                            length += this.utils.computePointDistance(activeShapePoint[activeShapePoint.length - 1], activeShapePoint[0]);
+                            this.geometry.markerAddLabel(activeEntity, `周长${length.toFixed(2)}米，面积${area.toFixed(2)}平方米`)
+                        }
+                    }
                 }
-                activeShapePoint.push(pick);
-            } else if (Cesium.defined(pick) && activeShapePoint.length > 0) {
-                activeEntity.position.setValue(pick)
-                activeShapePoint.pop();
-                activeShapePoint.push(pick);
-                // 线条计算长度 多边形计算长度面积
-                if (this._showDistance) {
-                    if (this._type == 1) {
-                        let location = this.utils.cartesian3ToDegree2(pick);
-                        this.geometry.markerAddLabel(activeEntity, `${location.longitude.toFixed(6)},${location.latitude.toFixed(6)}`)
-                        return;
-                    }
-                    let length = 0;
-                    // 计算长度
-                    for (let i = 1; i < activeShapePoint.length; i++) {
-                        length += this.utils.computePointDistance(activeShapePoint[i], activeShapePoint[i - 1]);
-                    }
-                    if (this._type == 2) {
-                        this.geometry.markerAddLabel(activeEntity, `共${length.toFixed(2)}米`)
-                    }
-                    // 面积计算未包含起伏山地的计算 只有投影大小
-                    if ((this._type == 3 || this._type == 4) && activeShapePoint.length > 2) {
-                        let area = this.utils.computePolygonArea(activeShapePoint);
-                        // 周长还需要添加一个末尾点到起始点的距离
-                        length += this.utils.computePointDistance(activeShapePoint[activeShapePoint.length - 1], activeShapePoint[0]);
-                        this.geometry.markerAddLabel(activeEntity, `周长${length.toFixed(2)}米，面积${area.toFixed(2)}平方米`)
-                    }
+            } else if (this._type == 5) {
+                //拖拽已有的entity
+                if (Cesium.defined(activeEntity)) {
+                    activeEntity.position.setValue(pick);
                 }
             }
+
         }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+
+        handler.setInputAction(evt => {
+            const pick = viewer.scene.pick(evt.position)
+            if (this._type == 5 && Cesium.defined(pick?.id)) {
+                that.utils.lockCamera()
+                activeEntity = pick?.id;
+            }
+        }, Cesium.ScreenSpaceEventType.LEFT_DOWN);
+
+        handler.setInputAction(evt => {
+            if (this._type == 5 && Cesium.defined(activeEntity)) {
+                activeEntity = null;
+                that.utils.unlockCamera()
+            }
+        }, Cesium.ScreenSpaceEventType.LEFT_UP);
 
 
         // 在已经画好的图形上修改 初步想法是按住ALT，跟踪鼠标的activeEntity隐藏，然后鼠标左键拖拽点
