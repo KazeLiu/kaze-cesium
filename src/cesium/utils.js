@@ -90,18 +90,24 @@ export default class CesiumUtils {
     /**
      * 世界坐标系转经纬度
      * 在Cesium中，Cesium.Cartographic.fromCartesian 方法只能使用 WGS84 椭球体 所以不用。
+     * type 0:返回对象 1:返回没有高度的数组
      */
-    cartesian3ToDegree2(cartesian) {
+    cartesian3ToDegree2(cartesian, type = 0) {
         const ellipsoid = this.viewer.scene.globe.ellipsoid;
         const cartographic = ellipsoid.cartesianToCartographic(cartesian);
         const longitude = Cesium.Math.toDegrees(cartographic.longitude);
         const latitude = Cesium.Math.toDegrees(cartographic.latitude);
         const altitude = cartographic.height;
-        return {
-            longitude,
-            latitude,
-            altitude
-        };
+        if (type == 0) {
+            return {
+                longitude,
+                latitude,
+                altitude
+            };
+        }
+        if (type == 1) {
+            return [longitude, latitude]
+        }
     }
 
     /**

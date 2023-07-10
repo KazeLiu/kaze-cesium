@@ -1,6 +1,8 @@
 import * as Cesium from "cesium";
 import CesiumGeometry from "./geometry.js";
 import CesiumUtils from "./utils.js";
+import * as turf from "@turf/turf";
+
 
 // 事件监听的方法放这里
 export default class CesiumEvent {
@@ -112,6 +114,33 @@ export default class CesiumEvent {
                     entityList = that.geometry.addLine({positions: activeShapePoint}, 'defaultDraw');
                 } else if (that._type == 3) {
                     entityList = that.geometry.addPolygon({positions: activeShapePoint}, 'defaultDraw');
+                    // that._type = 4
+                } else if (that._type == 4) {
+                    let holes = activeShapePoint.map(x => that.utils.cartesian3ToDegree2(x, 1))
+                    // 首尾相连 下同
+                    holes.push(holes[0]);
+                    let entities = viewer.dataSources.getByName('defaultDraw')[0]?.entities
+                    if (entities) {
+                        // 计算是否包含 包含就把Polygon掏洞
+                        let polygons = entities.values.filter(entity => entity.polygon !== undefined);
+                        polygons.forEach(function (entity) {
+                            let entityPositions = entity.polygon.hierarchy.getValue(undefined).positions.map(x => that.utils.cartesian3ToDegree2(x, 1))
+                            entityPositions.push(entityPositions[0])
+                            let isOverlap = turf.booleanContains(turf.polygon([entityPositions]), turf.polygon([holes]));
+                            if (isOverlap) {
+                                // 相交
+                                entityPositions.pop();
+                                holes.pop();
+                                debugger
+                                // entity.polygon.hierarchy._value.holes = [that.utils.convertToCartesian(holes)];
+                            }
+                        });
+                        // 计算是否相交 相交不保存并提示
+                        polygons.forEach(function (entity) {
+
+                        });
+                    }
+                    // entityList = that.geometry.addPolygon({positions: activeShapePoint}, 'defaultDraw');
                 }
                 that.trigger("draw", entityList, activeShapePoint);
             }
@@ -153,7 +182,7 @@ export default class CesiumEvent {
                                 width: 3,
                             }
                         };
-                    } else if (this._type === 3) {
+                    } else if (this._type === 3 || this._type === 4) {
                         shapeEntityOptions = {
                             polygon: {
                                 hierarchy: new Cesium.CallbackProperty(() => new Cesium.PolygonHierarchy(activeShapePoint), false),
@@ -227,7 +256,7 @@ export default class CesiumEvent {
                         this.geometry.markerAddLabel(activeEntity, `共${length.toFixed(2)}米`)
                     }
                     // 面积计算未包含起伏山地的计算 只有投影大小
-                    if (this._type == 3 && activeShapePoint.length > 2) {
+                    if ((this._type == 3 || this._type == 4) && activeShapePoint.length > 2) {
                         let area = this.utils.computePolygonArea(activeShapePoint);
                         // 周长还需要添加一个末尾点到起始点的距离
                         length += this.utils.computePointDistance(activeShapePoint[activeShapePoint.length - 1], activeShapePoint[0]);
@@ -266,21 +295,27 @@ export default class CesiumEvent {
             }
         }, Cesium.ScreenSpaceEventType.LEFT_DOWN, Cesium.KeyboardEventModifier.ALT)
 
-        let popPoint = null;
-        // 监听键盘按下事件
-        document.addEventListener('keydown', function (event) {
-            if (event.key === 'Alt') {
-                activeEntity.show = false;
-                // popPoint = activeShapePoint.pop();
-            }
-        });
-        // 监听键盘按下事件
-        document.addEventListener('keyup', function (event) {
-            if (event.key === 'Alt') {
-                activeEntity.show = true;
-                // activeShapePoint.push(popPoint);
-                popPoint = null;
-            }
-        });
+
+        // 不知道为什么只能触发一次，必须要移动地球一次才能再次触发一次
+        // let popPoint = null;
+        // let canvas = viewer.canvas;
+        // // 监听键盘按下事件
+        // canvas.addEventListener('keydown', function (event) {
+        //     console.log(event)
+        //     if (event.key === 'Alt' && Cesium.defined(activeEntity)) {
+        //         activeEntity.show = false;
+        //         popPoint = activeShapePoint.pop();
+        //     }
+        // });
+        //
+        // // // 监听键盘按下事件
+        // document.addEventListener('keyup', function (event) {
+        //     console.log(event)
+        //     if (event.key === 'Alt' && Cesium.defined(activeEntity)) {
+        //         activeEntity.show = true;
+        //         activeShapePoint.push(popPoint);
+        //         popPoint = null;
+        //     }
+        // });
     }
 }

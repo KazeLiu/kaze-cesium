@@ -40,14 +40,14 @@ export default class CesiumInit {
         // 禁止默认点击事件、双击事件
         this.viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
         this.viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK);
-        this.viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.KeyboardEventModifier.ALT);
+        this.viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOWN, Cesium.KeyboardEventModifier.ALT);
         // 初始化组
         let promiseList = [];
         // 这个是分组，能批量控制图标，每个项目不一样，需要自己设置dataSourceList
         // 项目中默认添加两个defaultCollection和defaultDraw
         // 添加的实体但是没有规定类别时全部添加到defaultCollection
         // 手动画的点线面归类到defaultDraw
-        [...new Set(['defaultCollection','defaultDraw', ...this.dataSourceList])].forEach(name => {
+        [...new Set(['defaultCollection', 'defaultDraw', ...this.dataSourceList])].forEach(name => {
             const dataSource = new Cesium.CustomDataSource(name);
             promiseList.push(this.viewer.dataSources.add(dataSource));
         })

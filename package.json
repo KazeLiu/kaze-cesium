@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@turf/area": "^6.5.0",
+    "@turf/turf": "^6.5.0",
     "sass-resources-loader": "^2.2.5",
     "vue": "^3.2.47"
   },
