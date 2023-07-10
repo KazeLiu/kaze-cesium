@@ -7,16 +7,13 @@
 <script setup>
 import {onMounted} from "vue";
 import CesiumKaze from "./cesium/index.js";
+import * as Cesium from "cesium";
 
 onMounted(async () => {
   let cesium = new CesiumKaze('cesium-dom')
   await cesium.init();
-  cesium.addMarker({
-    iconImage: `/public/logo.jpg`,
-    name: '原神！启动！',
-    scale: 0.50,
-    position: [112, 29]
-  })
+  // 监听图层加载完成事件
+
   cesium.changeCollectionShowAndHide(false, 'haha')
   cesium.on('contextMenu', res => {
     console.log(res)

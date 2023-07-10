@@ -48,6 +48,24 @@ export default class CesiumGeometry {
      * @returns {module:cesium.Entity}
      */
     addMarker(marker = {}, collectionName) {
+
+        // 添加海量点技术储备 https://www.cnblogs.com/onsummer/p/14059204.html
+        // let billboards = cesium.getViewer().scene.primitives.add(
+        //     new Cesium.BillboardCollection()
+        // );
+        //
+        // for (let i = 0; i < 100000; i++) {
+        //     // 生成随机经纬度
+        //     let longitude = Math.random() * (135.0417 - 73.5577) + 73.5577;
+        //     let latitude = Math.random() * (53.5608 - 18.1566) + 18.1566;
+        //     billboards.add({
+        //         position: new Cesium.Cartesian3.fromDegrees(longitude, latitude, 10.0),
+        //         image: '/public/logo.jpg',
+        //         scale:0.3
+        //     });
+        // }
+
+
         const id = this.utils.generateUUID();
         let info = Object.assign({
             scale: 0.1,

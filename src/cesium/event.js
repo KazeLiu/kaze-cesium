@@ -9,7 +9,7 @@ export default class CesiumEvent {
     _eventHandlers = {};
     // type代表地图上动态操作的类型，使用changeMouseEventType改变
     // 0|null:默认。其他类型会让左键点击获取entity失效 1:画点，2:画线，3:画面，4:面掏洞，5：移动图标
-    _type = 3;
+    _type = null;
     _showDistance = true; // 在线面的情况下  是否显示长度和周长与面积
 
     constructor(viewer) {
@@ -293,6 +293,7 @@ export default class CesiumEvent {
 
         }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
+        // 鼠标按下
         handler.setInputAction(evt => {
             const pick = viewer.scene.pick(evt.position)
             if (this._type == 5 && Cesium.defined(pick?.id)) {
@@ -301,13 +302,13 @@ export default class CesiumEvent {
             }
         }, Cesium.ScreenSpaceEventType.LEFT_DOWN);
 
+        // 鼠标抬起
         handler.setInputAction(evt => {
             if (this._type == 5 && Cesium.defined(activeEntity)) {
                 activeEntity = null;
                 that.utils.unlockCamera()
             }
         }, Cesium.ScreenSpaceEventType.LEFT_UP);
-
 
         // 在已经画好的图形上修改 初步想法是按住ALT，跟踪鼠标的activeEntity隐藏，然后鼠标左键拖拽点
         handler.setInputAction(evt => {
@@ -336,6 +337,7 @@ export default class CesiumEvent {
                 }, Cesium.ScreenSpaceEventType.LEFT_UP, Cesium.KeyboardEventModifier.ALT)
             }
         }, Cesium.ScreenSpaceEventType.LEFT_DOWN, Cesium.KeyboardEventModifier.ALT)
+
 
 
         // 不知道为什么只能触发一次，必须要移动地球一次才能再次触发一次
