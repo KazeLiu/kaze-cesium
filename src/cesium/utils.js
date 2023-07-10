@@ -1,6 +1,6 @@
 // 基础计算方法放这里 比如坐标系转换 颜色转化 视角锁定解锁
 import * as Cesium from "cesium";
-import area from "@turf/area";
+import * as turf from "@turf/turf";
 
 export default class CesiumUtils {
     constructor(viewer) {
@@ -126,8 +126,8 @@ export default class CesiumUtils {
 
     /**
      * 长度计算
-     * @param point1
-     * @param point2
+     * @param point1 世界坐标系
+     * @param point2 世界坐标系
      */
     computePointDistance(point1, point2) {
         return Cesium.Cartesian3.distance(this.convertToCartesian(point1), this.convertToCartesian(point2));
@@ -135,48 +135,19 @@ export default class CesiumUtils {
 
     /**
      * 计算面积
-     * @param polygonPointList
+     * @param polygonPointList 经纬度
      */
     computePolygonArea(polygonPointList) {
+        if (polygonPointList[0] != polygonPointList[polygonPointList.length - 1]) {
+            polygonPointList.push(polygonPointList[0])
+        }
         if (polygonPointList.length <= 2) {
             return 0
         }
         // 使用海伦公式 https://juejin.cn/post/7046566741438103583
-        let array = []
-        for (let i = 0, len = polygonPointList.length; i < len; i++) {
-            let cartographic = this.cartesian3ToDegree2(polygonPointList[i])
-            let longitude = Cesium.Math.toDegrees(cartographic.longitude).toFixed(6)
-            let latitude = Cesium.Math.toDegrees(cartographic.latitude).toFixed(6)
-            array.push({x: longitude, y: latitude})
-        }
+        let polygon = turf.polygon([polygonPointList]);
 
-        let arrS = []
-        let temS = []
-        arrS.push(temS)
-        for (let i = 0, len = array.length; i < len; i++) {
-            temS.push([array[i].x, array[i].y])
-        }
-        let polygons = {
-            type: 'FeatureCollection',
-            features: [
-                {
-                    type: 'Feature',
-                    properties: {},
-                    geometry: {
-                        type: 'Polygon',
-                        coordinates: arrS
-                    }
-                },
-                {
-                    type: 'Feature',
-                    properties: {},
-                    geometry: {
-                        type: 'Polygon',
-                        coordinates: [[[0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]]
-                    }
-                }
-            ]
-        }
-        return area(polygons)
+        // 计算多边形的面积（单位为平方米）
+        return turf.area(polygon)
     }
 }

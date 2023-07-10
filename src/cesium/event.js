@@ -9,7 +9,7 @@ export default class CesiumEvent {
     _eventHandlers = {};
     // type代表地图上动态操作的类型，使用changeMouseEventType改变
     // 0|null:默认。其他类型会让左键点击获取entity失效 1:画点，2:画线，3:画面，4:面掏洞，5：移动图标
-    _type = 5;
+    _type = 3;
     _showDistance = true; // 在线面的情况下  是否显示长度和周长与面积
 
     constructor(viewer) {
@@ -116,7 +116,6 @@ export default class CesiumEvent {
                     entityList = that.geometry.addLine({positions: activeShapePoint}, 'defaultDraw');
                 } else if (that._type == 3) {
                     entityList = that.geometry.addPolygon({positions: activeShapePoint}, 'defaultDraw');
-                    that._type = 4
                 } else if (that._type == 4) {
                     let newHole = activeShapePoint.map(x => that.utils.cartesian3ToDegree2(x, 1))
                     // 首尾相连 下同
@@ -278,7 +277,7 @@ export default class CesiumEvent {
                         }
                         // 面积计算未包含起伏山地的计算 只有投影大小
                         if ((this._type == 3 || this._type == 4) && activeShapePoint.length > 2) {
-                            let area = this.utils.computePolygonArea(activeShapePoint);
+                            let area = this.utils.computePolygonArea(activeShapePoint.map(x => that.utils.cartesian3ToDegree2(x,1)));
                             // 周长还需要添加一个末尾点到起始点的距离
                             length += this.utils.computePointDistance(activeShapePoint[activeShapePoint.length - 1], activeShapePoint[0]);
                             this.geometry.markerAddLabel(activeEntity, `周长${length.toFixed(2)}米，面积${area.toFixed(2)}平方米`)
