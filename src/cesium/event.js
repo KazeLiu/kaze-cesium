@@ -114,30 +114,48 @@ export default class CesiumEvent {
                     entityList = that.geometry.addLine({positions: activeShapePoint}, 'defaultDraw');
                 } else if (that._type == 3) {
                     entityList = that.geometry.addPolygon({positions: activeShapePoint}, 'defaultDraw');
-                    // that._type = 4
+                    that._type = 4
                 } else if (that._type == 4) {
-                    let holes = activeShapePoint.map(x => that.utils.cartesian3ToDegree2(x, 1))
+                    let newHole = activeShapePoint.map(x => that.utils.cartesian3ToDegree2(x, 1))
                     // 首尾相连 下同
-                    holes.push(holes[0]);
+                    newHole.push(newHole[0]);
                     let entities = viewer.dataSources.getByName('defaultDraw')[0]?.entities
                     if (entities) {
                         // 计算是否包含 包含就把Polygon掏洞
                         let polygons = entities.values.filter(entity => entity.polygon !== undefined);
                         polygons.forEach(function (entity) {
-                            let entityPositions = entity.polygon.hierarchy.getValue(undefined).positions.map(x => that.utils.cartesian3ToDegree2(x, 1))
-                            entityPositions.push(entityPositions[0])
-                            let isOverlap = turf.booleanContains(turf.polygon([entityPositions]), turf.polygon([holes]));
-                            if (isOverlap) {
-                                // 相交
-                                entityPositions.pop();
-                                holes.pop();
-                                debugger
-                                // entity.polygon.hierarchy._value.holes = [that.utils.convertToCartesian(holes)];
+                            let hierarchy = entity.polygon.hierarchy.getValue(undefined)
+                            if (!hierarchy.holes) {
+                                hierarchy.holes = [];
                             }
-                        });
-                        // 计算是否相交 相交不保存并提示
-                        polygons.forEach(function (entity) {
-
+                            let entityPositions = hierarchy.positions.map(x => that.utils.cartesian3ToDegree2(x, 1))
+                            entityPositions.push(entityPositions[0])
+                            // 判定洞之间是否相交 相交就忽略这个洞并提示
+                            let isError = false;
+                            hierarchy.holes.forEach(hole => {
+                                let holePosition = hole.positions.map(x => that.utils.cartesian3ToDegree2(x, 1));
+                                let boolIntersect = turf.intersect(turf.polygon([[...holePosition, holePosition[0]]]), turf.polygon([newHole]))
+                                if (boolIntersect) {
+                                    // 相交
+                                    isError = true;
+                                    return false
+                                }
+                            })
+                            if (isError) {
+                                alert("洞相交，当前图形作废")
+                                return;
+                            }
+                            // 判定是否包含在这个entity内
+                            let isOverlap = turf.booleanContains(turf.polygon([entityPositions]), turf.polygon([newHole]));
+                            if (isOverlap) {
+                                entityPositions.pop();
+                                newHole.pop();
+                                hierarchy.holes.push({positions: that.utils.convertToCartesian(newHole)});
+                                entity.polygon.hierarchy = hierarchy
+                            } else {
+                                alert("父级未完全包含洞，当前图形作废")
+                                return;
+                            }
                         });
                     }
                     // entityList = that.geometry.addPolygon({positions: activeShapePoint}, 'defaultDraw');
