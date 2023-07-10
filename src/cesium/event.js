@@ -158,7 +158,6 @@ export default class CesiumEvent {
                             }
                         });
                     }
-                    // entityList = that.geometry.addPolygon({positions: activeShapePoint}, 'defaultDraw');
                 }
                 that.trigger("draw", entityList, activeShapePoint);
             }
