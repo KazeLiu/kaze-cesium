@@ -52,6 +52,5 @@ export default class CesiumInit {
             promiseList.push(this.viewer.dataSources.add(dataSource));
         })
         await Promise.all(promiseList);
-
     }
 }

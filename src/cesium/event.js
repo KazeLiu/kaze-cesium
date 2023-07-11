@@ -8,8 +8,8 @@ import * as turf from "@turf/turf";
 export default class CesiumEvent {
     _eventHandlers = {};
     // type代表地图上动态操作的类型，使用changeMouseEventType改变
-    // 0|null:默认。其他类型会让左键点击获取entity失效 1:画点，2:画线，3:画面，4:面掏洞，5：移动图标
-    static _type = null;
+    // null 默认 获取经纬度。其他类型会让左键点击获取entity失效 0:获取点，1:画点，2:画线，3:画面，4:面掏洞，5：移动图标
+    _type = null;
     _showDistance = true; // 在线面的情况下  是否显示长度和周长与面积
     _viewer = null;
 
@@ -18,7 +18,6 @@ export default class CesiumEvent {
         this.geometry = new CesiumGeometry(viewer);
         this.utils = new CesiumUtils(viewer);
         this.event(new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas), viewer);
-        this.haha();
     }
 
     /**
@@ -64,17 +63,8 @@ export default class CesiumEvent {
     }
 
     changeMouseEventType(type, showDistance = true) {
-        if (type == 0) {
-            type = null;
-        }
         this._showDistance = showDistance
         this._type = type
-    }
-
-    haha() {
-        document.addEventListener('click', () => {
-            console.log(this)
-        })
     }
 
     /**
@@ -169,25 +159,29 @@ export default class CesiumEvent {
                                 that.trigger('kazeError', "父级未完全包含洞，当前图形作废")
                                 return;
                             }
+                            that.trigger("holeDraw", entity);
                         });
                     }
                 }
-                that.trigger("draw", entityList, activeShapePoint);
+                that.trigger("draw", entityList, activeShapePoint, that._type);
             }
             activeShapePoint = [];
         }
 
         // 左键
         handler.setInputAction(function (evt) {
-            if (!that._type) {
+            if (that._type == null) {
+                const pick = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.position), viewer.scene)
+                return that.utils.cartesian3ToDegree2(pick);
+            } else if (that._type == 0) {
                 // 返回点击的经纬度或者是entity点
                 const pick = viewer.scene.pick(evt.position)
-                const position = this.utils.cartesian3ToDegree2(pick);
-                const entityId = pick?.id?.id;
-                const entity = entityId ? this.geometry.getEntityById(entityId) : null;
-                const info = {id: entityId, position, entity};
-                this.trigger("handleClick", info);
-            } else {
+                if (pick) {
+                    const info = {entity: pick?.id};
+                    that.trigger("handleClick", info);
+                }
+            }
+            else if([1,2,3,4].includes(that._type)){
                 const pick = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.position), viewer.scene);
                 if (!Cesium.defined(pick)) {
                     return;
@@ -204,7 +198,7 @@ export default class CesiumEvent {
                 // 画线面
                 if (!drewEntity) {
                     let shapeEntityOptions;
-                    if (this._type === 2) {
+                    if (that._type === 2) {
                         shapeEntityOptions = {
                             polyline: {
                                 positions: new Cesium.CallbackProperty(() => activeShapePoint, false),
@@ -212,7 +206,7 @@ export default class CesiumEvent {
                                 width: 3,
                             }
                         };
-                    } else if (this._type === 3 || this._type === 4) {
+                    } else if (that._type === 3 || that._type === 4) {
                         shapeEntityOptions = {
                             polygon: {
                                 hierarchy: new Cesium.CallbackProperty(() => new Cesium.PolygonHierarchy(activeShapePoint), false),
@@ -235,13 +229,15 @@ export default class CesiumEvent {
 
         // 右键
         handler.setInputAction(evt => {
-            if (this._type == null) {
+            if (that._type == null) {
                 const pick = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.position), viewer.scene);
-                const position = this.utils.cartesian3ToDegree2(pick);
-                let info = {
-                    position, id: pick?.id?.id
+                if (pick) {
+                    const position = that.utils.cartesian3ToDegree2(pick);
+                    let info = {
+                        position, id: pick?.id?.id
+                    }
+                    that.trigger("contextMenu", info);
                 }
-                this.trigger("contextMenu", info);
             } else {
                 stopDrawing(true);
             }
@@ -250,7 +246,7 @@ export default class CesiumEvent {
         // 移动
         handler.setInputAction(evt => {
             const pick = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.endPosition), viewer.scene);
-            if (this._type == 1 || this._type == 2 || this._type == 3 || this._type == 4) {
+            if (that._type == 1 || that._type == 2 || that._type == 3 || that._type == 4) {
                 // 添加起始点和根据type添加动态点 type = 1,2,3,4
                 if (!Cesium.defined(activeEntity) && Cesium.defined(pick)) {
                     activeEntity = viewer.entities.add({
@@ -262,8 +258,8 @@ export default class CesiumEvent {
                         }
                     });
 
-                    if (this._showDistance) {
-                        this.geometry.markerAddLabel(activeEntity, "请标记")
+                    if (that._showDistance) {
+                        that.geometry.markerAddLabel(activeEntity, "请标记")
                     }
                     activeShapePoint.push(pick);
                 } else if (Cesium.defined(pick) && activeShapePoint.length > 0) {
@@ -271,34 +267,31 @@ export default class CesiumEvent {
                     activeShapePoint.pop();
                     activeShapePoint.push(pick);
                     // 线条计算长度 多边形计算长度面积
-                    if (this._showDistance) {
-                        if (this._type == 1) {
-                            let location = this.utils.cartesian3ToDegree2(pick);
-                            this.geometry.markerAddLabel(activeEntity, `${location.longitude.toFixed(6)},${location.latitude.toFixed(6)}`)
+                    if (that._showDistance) {
+                        if (that._type == 1) {
+                            let location = that.utils.cartesian3ToDegree2(pick);
+                            that.geometry.markerAddLabel(activeEntity, `${location.longitude.toFixed(6)},${location.latitude.toFixed(6)}`)
                             return;
                         }
                         let length = 0;
                         // 计算长度
                         for (let i = 1; i < activeShapePoint.length; i++) {
-                            length += this.utils.computePointDistance(activeShapePoint[i], activeShapePoint[i - 1]);
+                            length += that.utils.computePointDistance(activeShapePoint[i], activeShapePoint[i - 1]);
                         }
-                        if (this._type == 2) {
-                            this.geometry.markerAddLabel(activeEntity, `共${length.toFixed(2)}米`)
+                        if (that._type == 2) {
+                            that.geometry.markerAddLabel(activeEntity, `共${length.toFixed(2)}米`)
                         }
                         // 面积计算未包含起伏山地的计算 只有投影大小
-                        if ((this._type == 3 || this._type == 4) && activeShapePoint.length > 2) {
-                            let area = this.utils.computePolygonArea(activeShapePoint.map(x => that.utils.cartesian3ToDegree2(x, 1)));
+                        if ((that._type == 3 || that._type == 4) && activeShapePoint.length > 2) {
+                            let area = that.utils.computePolygonArea(activeShapePoint.map(x => that.utils.cartesian3ToDegree2(x, 1)));
                             // 周长还需要添加一个末尾点到起始点的距离
-                            length += this.utils.computePointDistance(activeShapePoint[activeShapePoint.length - 1], activeShapePoint[0]);
-                            this.geometry.markerAddLabel(activeEntity, `周长${length.toFixed(2)}米，面积${area.toFixed(2)}平方米`)
+                            length += that.utils.computePointDistance(activeShapePoint[activeShapePoint.length - 1], activeShapePoint[0]);
+                            that.geometry.markerAddLabel(activeEntity, `周长${length.toFixed(2)}米，面积${area.toFixed(2)}平方米`)
                         }
                     }
                 }
-            } else if (this._type == 5) {
-                //拖拽已有的entity
-                if (Cesium.defined(activeEntity)) {
-                    activeEntity.position.setValue(pick);
-                }
+            } else if (that._type == 5) {
+                drewEntity.position.setValue(pick);
             }
 
         }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
@@ -306,16 +299,16 @@ export default class CesiumEvent {
         // 鼠标按下
         handler.setInputAction(evt => {
             const pick = viewer.scene.pick(evt.position)
-            if (this._type == 5 && Cesium.defined(pick?.id)) {
+            if (that._type == 5 && Cesium.defined(pick?.id)) {
                 that.utils.lockCamera()
-                activeEntity = pick?.id;
+                drewEntity = pick?.id;
             }
         }, Cesium.ScreenSpaceEventType.LEFT_DOWN);
 
         // 鼠标抬起
         handler.setInputAction(evt => {
-            if (this._type == 5 && Cesium.defined(activeEntity)) {
-                activeEntity = null;
+            if (that._type == 5 && Cesium.defined(drewEntity)) {
+                drewEntity = null;
                 that.utils.unlockCamera()
             }
         }, Cesium.ScreenSpaceEventType.LEFT_UP);
@@ -336,8 +329,8 @@ export default class CesiumEvent {
                         activeShapePoint[index] = movePick;
                         // 改markerList
                         markerList[index].position.setValue(movePick);
-                        let location = this.utils.cartesian3ToDegree2(movePick);
-                        this.geometry.markerAddLabel(markerList[index], `${location.longitude.toFixed(6)},${location.latitude.toFixed(6)}`)
+                        let location = that.utils.cartesian3ToDegree2(movePick);
+                        that.geometry.markerAddLabel(markerList[index], `${location.longitude.toFixed(6)},${location.latitude.toFixed(6)}`)
                     }
                 }, Cesium.ScreenSpaceEventType.MOUSE_MOVE, Cesium.KeyboardEventModifier.ALT)
                 handler.setInputAction(evt => {

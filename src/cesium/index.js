@@ -8,43 +8,25 @@ import CesiumEvent from "./event.js"
  * 初始化的option是cesium的内容，包含Cesium.Viewer的全部设置项目，详见 https://cesium.com/learn/cesiumjs/ref-doc/Viewer.html#.ConstructorOptions
  */
 
-export default class CesiumKaze extends mixinsClass(CesiumInit, CesiumGeometry, CesiumUtils, CesiumEvent) {
-    constructor(domId, option) {
-        super(domId, option);
-    }
-
-    getCesium(){
-    }
-}
-
-function mixinsClass(...mixins) {
-    class MixinClass {
-        constructor(domId, option) {
-            let cesiumInit = new CesiumInit(domId, option)
-            let viewer = cesiumInit.getViewer();
-            copyProperties(this, cesiumInit);
-            copyProperties(this, new CesiumGeometry(viewer));
-            copyProperties(this, new CesiumUtils(viewer));
-            copyProperties(this, new CesiumEvent(viewer));
-        }
-    }
-
-    let proto = MixinClass.prototype;
-    for (let mixin of mixins) {
-        copyProperties(MixinClass, mixin); // 拷贝静态属性
-        copyProperties(proto, mixin.prototype); // 拷贝原型属性
-    }
-    return MixinClass;
-}
-
-function copyProperties(target, source) {
-    for (let key of Reflect.ownKeys(source)) {
-        if (key !== 'constructor'
-            && key !== 'prototype'
-            && key !== 'name'
-        ) {
-            let desc = Object.getOwnPropertyDescriptor(source, key);
-            Object.defineProperty(target, key, desc);
-        }
+export default class CesiumKaze {
+    async init(domId, option) {
+        let init = new CesiumInit(domId, option);
+        await init.init();
+        let utils = new CesiumUtils(init.getViewer());
+        let geometry = new CesiumGeometry(init.getViewer());
+        let event = new CesiumEvent(init.getViewer());
+        const mergedClass = new Proxy({}, {
+            get(target, prop) {
+                const classes = [init, utils, geometry, event];
+                for (const cls of classes) {
+                    if (prop in cls) {
+                        if (typeof cls[prop] === 'function') {
+                            return cls[prop].bind(cls)
+                        }
+                    }
+                }
+            }
+        });
+        return mergedClass;
     }
 }
