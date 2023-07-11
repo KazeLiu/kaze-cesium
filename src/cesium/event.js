@@ -9,7 +9,7 @@ export default class CesiumEvent {
     _eventHandlers = {};
     // type代表地图上动态操作的类型，使用changeMouseEventType改变
     // 0|null:默认。其他类型会让左键点击获取entity失效 1:画点，2:画线，3:画面，4:面掏洞，5：移动图标
-    _type = null;
+    static _type = null;
     _showDistance = true; // 在线面的情况下  是否显示长度和周长与面积
     _viewer = null;
 
@@ -85,7 +85,6 @@ export default class CesiumEvent {
      */
     event(handler, viewer) {
         let that = this;
-        console.log(that);
         // 这个是当前的经纬度列表，包含点线面Entity的经纬度点。点击右键的时候会通过监听geometryData方法返回
         let activeShapePoint = [];
         // 这个实体，是一个点，会随着鼠标移动而更改，每次右键后删除
