@@ -8,13 +8,16 @@ import CesiumEvent from "./event.js"
  * 初始化的option是cesium的内容，包含Cesium.Viewer的全部设置项目，详见 https://cesium.com/learn/cesiumjs/ref-doc/Viewer.html#.ConstructorOptions
  */
 
-export default class CesiumKaze extends mixinsCLass(CesiumInit, CesiumGeometry, CesiumUtils, CesiumEvent) {
+export default class CesiumKaze extends mixinsClass(CesiumInit, CesiumGeometry, CesiumUtils, CesiumEvent) {
     constructor(domId, option) {
         super(domId, option);
     }
+
+    getCesium(){
+    }
 }
 
-function mixinsCLass(...mixins) {
+function mixinsClass(...mixins) {
     class MixinClass {
         constructor(domId, option) {
             let cesiumInit = new CesiumInit(domId, option)

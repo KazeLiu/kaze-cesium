@@ -11,11 +11,14 @@ export default class CesiumEvent {
     // 0|null:默认。其他类型会让左键点击获取entity失效 1:画点，2:画线，3:画面，4:面掏洞，5：移动图标
     _type = null;
     _showDistance = true; // 在线面的情况下  是否显示长度和周长与面积
+    _viewer = null;
 
     constructor(viewer) {
+        this._viewer = viewer;
         this.geometry = new CesiumGeometry(viewer);
         this.utils = new CesiumUtils(viewer);
         this.event(new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas), viewer);
+        this.haha();
     }
 
     /**
@@ -60,11 +63,18 @@ export default class CesiumEvent {
         this._eventHandlers[eventName].forEach(handler => handler.apply(this, args));
     }
 
-    changeMouseEventType(type) {
+    changeMouseEventType(type, showDistance = true) {
         if (type == 0) {
             type = null;
         }
+        this._showDistance = showDistance
         this._type = type
+    }
+
+    haha() {
+        document.addEventListener('click', () => {
+            console.log(this)
+        })
     }
 
     /**
@@ -75,6 +85,7 @@ export default class CesiumEvent {
      */
     event(handler, viewer) {
         let that = this;
+        console.log(that);
         // 这个是当前的经纬度列表，包含点线面Entity的经纬度点。点击右键的时候会通过监听geometryData方法返回
         let activeShapePoint = [];
         // 这个实体，是一个点，会随着鼠标移动而更改，每次右键后删除
@@ -168,8 +179,8 @@ export default class CesiumEvent {
         }
 
         // 左键
-        handler.setInputAction(evt => {
-            if (!this._type) {
+        handler.setInputAction(function (evt) {
+            if (!that._type) {
                 // 返回点击的经纬度或者是entity点
                 const pick = viewer.scene.pick(evt.position)
                 const position = this.utils.cartesian3ToDegree2(pick);
@@ -277,7 +288,7 @@ export default class CesiumEvent {
                         }
                         // 面积计算未包含起伏山地的计算 只有投影大小
                         if ((this._type == 3 || this._type == 4) && activeShapePoint.length > 2) {
-                            let area = this.utils.computePolygonArea(activeShapePoint.map(x => that.utils.cartesian3ToDegree2(x,1)));
+                            let area = this.utils.computePolygonArea(activeShapePoint.map(x => that.utils.cartesian3ToDegree2(x, 1)));
                             // 周长还需要添加一个末尾点到起始点的距离
                             length += this.utils.computePointDistance(activeShapePoint[activeShapePoint.length - 1], activeShapePoint[0]);
                             this.geometry.markerAddLabel(activeEntity, `周长${length.toFixed(2)}米，面积${area.toFixed(2)}平方米`)
@@ -337,7 +348,6 @@ export default class CesiumEvent {
                 }, Cesium.ScreenSpaceEventType.LEFT_UP, Cesium.KeyboardEventModifier.ALT)
             }
         }, Cesium.ScreenSpaceEventType.LEFT_DOWN, Cesium.KeyboardEventModifier.ALT)
-
 
 
         // 不知道为什么只能触发一次，必须要移动地球一次才能再次触发一次

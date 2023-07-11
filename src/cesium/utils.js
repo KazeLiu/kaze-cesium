@@ -107,6 +107,9 @@ export default class CesiumUtils {
      * type 0:返回对象 1:返回没有高度的数组
      */
     cartesian3ToDegree2(cartesian, type = 0) {
+        if (!cartesian) {
+            return null;
+        }
         const ellipsoid = this.viewer.scene.globe.ellipsoid;
         const cartographic = ellipsoid.cartesianToCartographic(cartesian);
         const longitude = Cesium.Math.toDegrees(cartographic.longitude);
