@@ -97,6 +97,24 @@ const demo = () => {
     {time: '2023-07-16 12:00:00', position: [136.1237, 49.4324]},
   ];
   cesium.historyLine(marker, line);
+
+  // 添加热力图
+
+  let heatMapPoint = [];
+  for (let i = 0; i < 500; i++) {
+    let randomLng = Math.random() * (113.082 - 112.876) + 112.876;
+    let randomLat = Math.random() * (28.300 - 28.112) + 28.112; ;
+    let randomValue = Math.floor(Math.random() * 101);
+
+    let entry = {
+      "x": randomLng,
+      "y": randomLat,
+      "value": randomValue
+    };
+
+    heatMapPoint.push(entry);
+  }
+  cesium.addHeatMap(heatMapPoint)
 }
 
 // 控制时间轴
@@ -148,7 +166,8 @@ const func = reactive({
   },
   changeMouseEventType(type) {
     cesium.changeMouseEventType(type);
-  }
+  },
+
 })
 </script>
 

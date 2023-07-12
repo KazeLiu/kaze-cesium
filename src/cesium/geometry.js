@@ -1,6 +1,8 @@
 // 创建点线面等几何方法放这里
 import * as Cesium from "cesium";
 import CesiumUtils from "./utils.js";
+import {CesiumHeatmap} from "cesium-heatmap-es6"
+
 
 export default class CesiumGeometry {
 
@@ -64,7 +66,6 @@ export default class CesiumGeometry {
         //         scale:0.3
         //     });
         // }
-
 
         const id = this.utils.generateUUID();
         let info = Object.assign({
@@ -196,7 +197,7 @@ export default class CesiumGeometry {
      * @param marker
      * @param timeAndPosition [{time:'2023-01-01 12:00:00',position:[122.4882,23.9999]},{time:'2023-01-02 12:00:00',position:[126.1321,39.2452]}]
      */
-    historyLine(marker, timeAndPosition, isAvailability) {
+    historyLine(marker, timeAndPosition) {
         let positionProperty = new Cesium.SampledPositionProperty();
         for (let i = 0; i < timeAndPosition.length; i++) {
             positionProperty.addSample(Cesium.JulianDate.fromDate(new Date(timeAndPosition[i].time)),
@@ -221,5 +222,33 @@ export default class CesiumGeometry {
 
         marker.orientation = new Cesium.VelocityOrientationProperty(positionProperty);
 
+    }
+
+    /**
+     * 热力图 要其他的（修改颜色透明度，修改最大最小值）再说
+     * @param entryList 点列表[{
+     *                 "x": randomLng,
+     *                 "y": randomLat,
+     *                 "value": randomValue
+     *             }]
+     */
+    addHeatMap(entryList) {
+        let data = [];
+        entryList.forEach(item => {
+            data.push(item)
+        })
+        let cesiumHeatmap = new CesiumHeatmap(this.viewer,
+            {
+                // zoomToLayer: true, 自动到热力图范围
+                points: data,
+                renderType:"entity",
+                heatmapDataOptions: {max: 100, min: 0},
+                heatmapOptions: {
+                    maxOpacity: 0.8,
+                    minOpacity: 0
+                }
+            }
+        )
+        return cesiumHeatmap
     }
 }

@@ -85,7 +85,6 @@ export default class CesiumEvent {
         let markerList = [];
         // 当前正在画的实体的id，鼠标点一下，图形多一个点，这个index+1，用于后期按住alt+鼠标点击圆点时找到被选的正在画的实体的那个拐角坐标
         let drewMarkerIndex = 0;
-
         /**
          * 停止画线面
          * @param saveEntity 是否保存实体 不保存实体约等于取消这次画图
@@ -115,7 +114,7 @@ export default class CesiumEvent {
                 } else if (that._type == 2) {
                     entityList = that.geometry.addLine({positions: activeShapePoint}, 'defaultDraw');
                 } else if (that._type == 3) {
-                    entityList = that.geometry.addPolygon({positions: activeShapePoint}, 'defaultDraw');
+                       entityList = that.geometry.addPolygon({positions: activeShapePoint}, 'defaultDraw');
                 } else if (that._type == 4) {
                     let newHole = activeShapePoint.map(x => that.utils.cartesian3ToDegree2(x, 1))
                     // 首尾相连 下同
