@@ -9,7 +9,19 @@
       <br/>
       <button @click="func.changeMouseEventType(0)">获取图标数据</button>
       <button @click="func.changeMouseEventType(5)">移动图标</button>
-      <hr style="margin: 10px auto"/>
+      <hr/>
+      获取cesium的时间轴起止时间
+      <br/>
+      开始：<input type="datetime-local" id="startTimeInput">
+      <br/>
+      结束：<input type="datetime-local" id="endTimeInput">
+      <br/>
+      当前时间：<input type="range" id="timeRange" min="0" max="100" step="1">
+      <br/>
+      <input type="datetime-local" id="timeRangeInput">
+      <br/>
+      起止时间范围无法限制当前时间
+      <hr/>
       <div>打开控制台看返回值</div>
     </div>
   </div>
@@ -26,11 +38,10 @@ onMounted(async () => {
   cesium = await new CesiumKaze().init('cesium-dom');
   showBtn.value = true;
   demo();
+  range.init();
 })
 
 const demo = () => {
-  cesium.changeCollectionShowAndHide(false, 'haha')
-
   // 画图完成后事件 返回entity信息，世界坐标系列表，图的类型 1:画点，2:画线，3:画面，4:面掏洞
   cesium.on('draw', (entityList, cartesian3List, type) => {
     if (type == 1) {
@@ -69,7 +80,67 @@ const demo = () => {
   cesium.on('handleClick', (entity) => {
     func.clg('entity', entity)
   })
+
+  // 添加一个点
+  let marker = cesium.addMarker({
+    iconImage: `/public/logo.jpg`,
+    name: '原神',
+    scale: 0.20,
+    position: [112, 29]
+  })
+
+  // 添加轨迹移动
+  let line = [
+    {time: '2023-07-10 12:00:00', position: [74.1237, 33.4324]},
+    {time: '2023-07-12 12:00:00', position: [112.4882, 15.9999]},
+    {time: '2023-07-14 12:00:00', position: [126.1321, 39.2452]},
+    {time: '2023-07-16 12:00:00', position: [136.1237, 49.4324]},
+  ];
+  cesium.historyLine(marker, line);
 }
+
+// 控制时间轴
+const range = reactive({
+  startTimeInput: null,
+  endTimeInput: null,
+  timeRange: null,
+  timeRangeInput: null,
+  init() {
+    let clock = cesium.getViewer().clock;
+    range.startTimeInput = document.getElementById('startTimeInput');
+    range.endTimeInput = document.getElementById('endTimeInput');
+    range.timeRange = document.getElementById('timeRange');
+    range.timeRangeInput = document.getElementById('timeRangeInput');
+    // 获取时间轴的起始时间和结束时间
+    let startJulianDate = clock.startTime;
+    let endJulianDate = clock.stopTime;
+    // 将起始时间和结束时间转换为 JavaScript Date 对象
+    let startDate = cesium.julianDateToISODate(startJulianDate);
+    let endDate = cesium.julianDateToISODate(endJulianDate);
+    range.startTimeInput.value = startDate.toISOString().slice(0, 16);
+    range.endTimeInput.value = endDate.toISOString().slice(0, 16)
+    // 获取时间轴当前时间
+    let currentTimeJulianDate = clock.currentTime;
+    let currentDate = new Date(currentTimeJulianDate);
+    this.updateTimeRange(currentDate.getTime());
+    range.startTimeInput.addEventListener('input', range.updateTimeRange);
+    range.endTimeInput.addEventListener('input', range.updateTimeRange);
+    range.timeRange.addEventListener('input', range.updateTimeInputs);
+  },
+  updateTimeRange(currentDate) {
+    let startTime = new Date(range.startTimeInput.value);
+    let endTime = new Date(range.endTimeInput.value);
+    range.timeRange.min = startTime.getTime();
+    range.timeRange.max = endTime.getTime();
+    range.timeRange.value = currentDate ? currentDate : startTime.getTime();
+    range.timeRangeInput.value = new Date(parseFloat(range.timeRange.value)).toISOString().slice(0, 16)
+
+  },
+  updateTimeInputs() {
+    cesium.changeTimeLine(parseFloat(range.timeRange.value))
+    range.timeRangeInput.value = new Date(parseFloat(range.timeRange.value)).toISOString().slice(0, 16)
+  }
+})
 
 const func = reactive({
   clg(text, obj) {
@@ -77,7 +148,6 @@ const func = reactive({
   },
   changeMouseEventType(type) {
     cesium.changeMouseEventType(type);
-    cesium.stopDrawing(false)
   }
 })
 </script>
@@ -112,5 +182,9 @@ button {
   display: inline-block;
   font-size: 16px;
   margin: auto 4px 4px auto;
+}
+
+hr {
+  margin: 10px auto
 }
 </style>

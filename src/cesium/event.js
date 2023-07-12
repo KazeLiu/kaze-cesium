@@ -152,7 +152,7 @@ export default class CesiumEvent {
                             if (isOverlap) {
                                 entityPositions.pop();
                                 newHole.pop();
-                                hierarchy.holes.push({positions: that.utils.convertToCartesian(newHole)});
+                                hierarchy.holes.push({positions: that.utils.convertToCartesian3(newHole)});
                                 entity.polygon.hierarchy = hierarchy
                             } else {
                                 alert("父级未完全包含洞，当前图形作废")
@@ -180,8 +180,7 @@ export default class CesiumEvent {
                     const info = {entity: pick?.id};
                     that.trigger("handleClick", info);
                 }
-            }
-            else if([1,2,3,4].includes(that._type)){
+            } else if ([1, 2, 3, 4].includes(that._type)) {
                 const pick = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.position), viewer.scene);
                 if (!Cesium.defined(pick)) {
                     return;
@@ -293,7 +292,10 @@ export default class CesiumEvent {
             } else if (that._type == 5) {
                 drewEntity.position.setValue(pick);
             }
-
+            // 切换到非画图时，走一次删除，把没花完的全部清除
+            if (that._type == 0 && Cesium.defined(activeEntity)) {
+                stopDrawing(false);
+            }
         }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
         // 鼠标按下

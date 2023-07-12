@@ -73,7 +73,7 @@ export default class CesiumUtils {
     /**
      * 判断是不是世界坐标系 如果是世界坐标系直接返回，如果是经纬度就转化为世界坐标系返回，接受一个世界坐标系或者坐标系组
      */
-    convertToCartesian(position) {
+    convertToCartesian3(position) {
         if (Array.isArray(position)) {
             if (position[0] instanceof Cesium.Cartesian3) {
                 // 数组里面第一个是Cartesian3对象，判定为整个数组都是Cartesian3，直接返回
@@ -133,7 +133,7 @@ export default class CesiumUtils {
      * @param point2 世界坐标系
      */
     computePointDistance(point1, point2) {
-        return Cesium.Cartesian3.distance(this.convertToCartesian(point1), this.convertToCartesian(point2));
+        return Cesium.Cartesian3.distance(this.convertToCartesian3(point1), this.convertToCartesian3(point2));
     }
 
     /**
@@ -152,5 +152,32 @@ export default class CesiumUtils {
 
         // 计算多边形的面积（单位为平方米）
         return turf.area(polygon)
+    }
+
+    /**
+     * 标准时间转换为天文儒略日期
+     * @param date
+     * @returns {JulianDate}
+     */
+    iSODateToJulianDate(date) {
+        return Cesium.JulianDate.fromDate(date);
+    }
+
+    /**
+     * 天文儒略日期转换为标准时间
+     * @param julianDate
+     * @returns {Date}
+     */
+    julianDateToISODate(julianDate) {
+        return new Date(julianDate.toString())
+    }
+
+    /**
+     * 设置当前时间
+     * @param timestamp 当前时间时间戳
+     */
+    changeTimeLine(timestamp) {
+        let julianDate = this.iSODateToJulianDate(new Date(timestamp));
+        this.viewer.clock.currentTime = julianDate;
     }
 }
