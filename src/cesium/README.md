@@ -147,7 +147,7 @@ const demo = () => {
   let heatMapPoint = [];
   for (
 
-      let i = 0; i < 500; i++) {
+let i = 0; i < 500; i++) {
     let randomLng = Math.random() * (113.082 - 112.876) + 112.876;
     let randomLat = Math.random() * (28.300 - 28.112) + 28.112; ;
     let randomValue = Math.floor(Math.random() * 101);

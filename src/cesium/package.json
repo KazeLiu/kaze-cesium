@@ -1,0 +1,35 @@
+{
+  "name": "kaze-cesium-helper",
+  "version": "0.9.3",
+  "description": "A Cesium wrapper library for drawing points, lines, polygons, and calculating length and area.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["cesium", "wrapper", "points", "lines", "polygons", "length", "area"],
+  "author": "kazeliu",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KazeLiu/cesium-helper.git"
+  },
+  "bugs": {
+    "url": "https://github.com/KazeLiu/cesium-helper/issues"
+  },
+  "homepage": "https://github.com/KazeLiu/cesium-helper#readme",
+  "dependencies": {
+    "@turf/area": "^6.5.0",
+    "@turf/turf": "^6.5.0",
+    "cesium-heatmap-es6": "^0.8.0",
+    "sass-resources-loader": "^2.2.5",
+    "vue": "^3.2.47"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.1.0",
+    "cesium": "^1.107.0",
+    "vite": "^4.3.9",
+    "vite-plugin-cesium": "^1.2.22"
+  }
+}
