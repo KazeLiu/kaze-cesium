@@ -197,7 +197,7 @@ const func = reactive({
 </style>
 ```
 
-## API 文档
+## API 文档 （常用，其他的api请在源码内寻找 ㄟ(▔皿▔ㄟ) ）
 
 ### CesiumKaze 类
 
