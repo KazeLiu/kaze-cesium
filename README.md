@@ -8,7 +8,7 @@ kaze-cesium-helper 是一个基于 Cesium 的封装库，提供了绘制点、�
 
 ```bash
 npm install kaze-cesium-helper
-npm vite-plugin-cesium
+npm install vite-plugin-cesium
 ```
 
 ## 初始化
