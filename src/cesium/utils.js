@@ -11,63 +11,40 @@ export default class CesiumUtils {
      * js生成uuid
      */
     generateUUID() {
-        let d = new Date().getTime()
-        let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            let r = (d + Math.random() * 16) % 16 | 0
-            d = Math.floor(d / 16)
-            return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16)
-        })
-        return uuid
-    }
-
-    /**
-     * 转化为地图用的颜色
-     */
-    colorToCesiumRGB(color, alpha) {
-        let sColor = color.toLowerCase();
-        //十六进制颜色值的正则表达式
-        let reg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6})$/;
-        let sColorChange = [];
-        // 如果是16进制颜色
-        if (sColor && reg.test(sColor)) {
-            if (sColor.length === 4) {
-                let sColorNew = "#";
-                for (let i = 1; i < 4; i += 1) {
-                    sColorNew += sColor.slice(i, i + 1).concat(sColor.slice(i, i + 1));
-                }
-                sColor = sColorNew;
-            }
-            //处理六位的颜色值
-            for (let i = 1; i < 7; i += 2) {
-                sColorChange.push(parseInt("0x" + sColor.slice(i, i + 2)));
-            }
-        } else {
-            console.error('传入的颜色不是16进制颜色')
-            return;
-        }
-        return new Cesium.Color(sColorChange[0] / 255, sColorChange[1] / 255, sColorChange[2] / 255, alpha)
+        const d = new Date().getTime();
+        const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+            const r = (d + ((Math.random() * 16) >> 0)) % 16 | 0;
+            return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        });
+        return uuid;
     }
 
     /**
      * 取消视角锁定
      */
     unlockCamera() {
-        this.viewer.scene.screenSpaceCameraController.enableRotate = true;
-        this.viewer.scene.screenSpaceCameraController.enableTranslate = true;
-        this.viewer.scene.screenSpaceCameraController.enableZoom = true;
-        this.viewer.scene.screenSpaceCameraController.enableTilt = true;
-        this.viewer.scene.screenSpaceCameraController.enableLook = true;
+        const cameraController = this.viewer.scene.screenSpaceCameraController;
+        this.setCameraLockStatus(cameraController, true);
     }
 
     /**
      * 取消视角锁定
      */
     lockCamera() {
-        this.viewer.scene.screenSpaceCameraController.enableRotate = false;
-        this.viewer.scene.screenSpaceCameraController.enableTranslate = false;
-        this.viewer.scene.screenSpaceCameraController.enableZoom = false;
-        this.viewer.scene.screenSpaceCameraController.enableTilt = false;
-        this.viewer.scene.screenSpaceCameraController.enableLook = false;
+        const cameraController = this.viewer.scene.screenSpaceCameraController;
+        this.setCameraLockStatus(cameraController, false);
+    }
+
+    /**
+     * 视角类统一管理
+     * @param cameraController
+     * @param lock
+     */
+    setCameraLockStatus(cameraController, lock) {
+        const properties = ['enableRotate', 'enableTranslate', 'enableZoom', 'enableTilt', 'enableLook'];
+        for (const property of properties) {
+            cameraController[property] = lock;
+        }
     }
 
     /**
@@ -80,24 +57,17 @@ export default class CesiumUtils {
                 return position;
             } else if (Array.isArray(position[0])) {
                 // [[xx, yy], [xx, yy]]
-                // 循环position数组，将每个数组转换为世界坐标系
-                return position.map(pos => {
-                    if (pos instanceof Cesium.Cartesian3) {
-                        return pos;
-                    } else {
-                        return Cesium.Cartesian3.fromDegrees(...pos);
-                    }
-                });
+                return position.map(pos => this.convertToCartesian3(pos));
             } else {
                 // [xx, yy]
-                // 将数字转换为世界坐标系
                 return Cesium.Cartesian3.fromDegrees(...position);
+                // return this.convertToCartesian3Single(position);
             }
         } else if (position instanceof Cesium.Cartesian3) {
             // 不是数组，直接判断是否是Cartesian3对象
             return position;
         } else {
-            console.log(position + "，它不是地球坐标系，也不是经纬度的数组");
+            throw new Error(position + "，它不是地球坐标系，也不是经纬度的数组");
         }
     }
 
@@ -179,5 +149,88 @@ export default class CesiumUtils {
     changeTimeLine(timestamp) {
         let julianDate = this.iSODateToJulianDate(new Date(timestamp));
         this.viewer.clock.currentTime = julianDate;
+    }
+
+    /**
+     * 在3D模式下回到正北
+     */
+    toN() {
+        this.viewer.camera.flyTo({
+            duration: 1,
+            destination: this.viewer.camera.positionWC
+        })
+    }
+
+    /**
+     * 在3D模式下返回屏幕可视经纬度
+     * @returns {{southwest: {lng: number, lat: number}, northeast: {lng: number, lat: number}}}
+     */
+    getBounds() {
+        let viewer = this.viewer;
+        let rectangle = viewer.camera.computeViewRectangle();
+        let west = rectangle.west / Math.PI * 180;
+        let north = rectangle.north / Math.PI * 180;
+        let east = rectangle.east / Math.PI * 180;
+        let south = rectangle.south / Math.PI * 180;
+        let bounds = {
+            southwest: {
+                lng: west,
+                lat: south
+            },
+            northeast: {
+                lng: east,
+                lat: north
+            }
+        };
+        return bounds;
+    }
+
+    /**
+     * 获取屏幕中心点经纬度数组
+     * @returns {number[]}
+     */
+    getCenterPoint() {
+        let viewer = this.viewer;
+        const center = viewer.camera.positionWC; // 获取相机位置（笛卡尔坐标）
+        const ellipsoid = viewer.scene.globe.ellipsoid;
+        const cartographic = ellipsoid.cartesianToCartographic(center); // 将相机位置转换为经纬度坐标
+        const longitude = Cesium.Math.toDegrees(cartographic.longitude);
+        const latitude = Cesium.Math.toDegrees(cartographic.latitude);
+        return [longitude, latitude]
+    }
+
+    /**
+     * 通过id获取entity
+     * @param id
+     * @returns {Entity}
+     */
+    getEntityById(id) {
+        let viewer = this.viewer;
+        return viewer.entities.getById(id);
+    }
+
+    /**
+     * 将颜色和透明度转化为cesium使用的颜色
+     * @param color
+     * @param alpha
+     * @returns {module:cesium.Color}
+     */
+    colorToCesiumRGB(color, alpha) {
+        const sColor = color.toLowerCase();
+        const reg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6})$/;
+
+        if (!reg.test(sColor)) {
+            throw new Error('传入的颜色不是16进制颜色');
+        }
+
+        let sColorNew = sColor.length === 4 ? `#${sColor[1]}${sColor[1]}${sColor[2]}${sColor[2]}${sColor[3]}${sColor[3]}` : sColor;
+        const sColorChange = Array.from(sColorNew.slice(1), (c, i) => parseInt(sColorNew.substr(i * 2, 2), 16));
+
+        return new Cesium.Color(
+            sColorChange[0] / 255,
+            sColorChange[1] / 255,
+            sColorChange[2] / 255,
+            alpha
+        );
     }
 }

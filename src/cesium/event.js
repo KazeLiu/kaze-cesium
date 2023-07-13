@@ -342,6 +342,16 @@ export default class CesiumEvent {
             }
         }, Cesium.ScreenSpaceEventType.LEFT_DOWN, Cesium.KeyboardEventModifier.ALT)
 
+        // 监听朝向
+        viewer.scene.preRender.addEventListener(function () {
+            // 获取当前视图的朝向（方向）
+            let viewHeading = viewer.camera.heading;
+            // 将视图的朝向转换为角度（0-360）
+            let viewHeadingDeg = Cesium.Math.toDegrees(viewHeading);
+            // 计算地图的北方向角度
+            let northAngle = (360.0 - viewHeadingDeg) % 360.0;
+            that.trigger('northAngle', northAngle)
+        });
 
         // 不知道为什么只能触发一次，必须要移动地球一次才能再次触发一次
         // let popPoint = null;
