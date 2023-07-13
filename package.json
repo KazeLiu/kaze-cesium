@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "vite build",
-    "start": "vite",
+    "dev": "vite",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": ["cesium", "wrapper", "points", "lines", "polygons", "length", "area"],
@@ -29,8 +29,6 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.1.0",
     "cesium": "^1.107.0",
-    "sass": "^1.63.6",
-    "sass-loader": "^13.3.2",
     "vite": "^4.3.9",
     "vite-plugin-cesium": "^1.2.22"
   }
