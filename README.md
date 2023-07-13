@@ -1,18 +1,18 @@
-# kaze-cesium
+# kaze-cesium-helper
 
-kaze-cesium 是一个基于 Cesium 的封装库，提供了绘制点、线、面以及计算长度和面积等功能。
+kaze-cesium-helper 是一个基于 Cesium 的封装库，提供了绘制点、线、面以及计算长度和面积等功能。
 
 ## 安装
 
-使用 npm 安装 kaze-cesium：
+使用 npm 安装 kaze-cesium-helper：
 
 ```bash
-npm install kaze-cesium
+npm install kaze-cesium-helper
 ```
 
 ## 示例
 
-在 Vue 组件中使用 kaze-cesium：
+在 Vue 组件中使用 kaze-cesium-helper：
 
 ```vue
 <template>
@@ -47,7 +47,7 @@ npm install kaze-cesium
 <script setup>
 // 引入必要的模块和函数
 import { onMounted, reactive, ref } from "vue";
-import CesiumKaze from "./cesium/index.js";
+import CesiumKaze from "kaze-cesium-helper";
 
 // 创建响应式变量
 const showBtn = ref(false);
@@ -276,8 +276,8 @@ MIT License
 
 ## 反馈和问题
 
-如果您发现任何问题或有任何疑问，请在项目的 [GitHub Issues](https://github.com/kazeliu/kaze-cesium/issues) 页面提出。
+如果您发现任何问题或有任何疑问，请在项目的 [GitHub Issues](https://github.com/kazeliu/kaze-cesium-helper/issues) 页面提出。
 
 ## 注意
 
-此readme由ChatGPT生成，如有遗漏或者不正确的地方，请翻源码或者提 [Issues](https://github.com/kazeliu/kaze-cesium/issues) 。本代码初衷是给自己用，所以有些封装没有传值，如果需要，建议下载源码修改
+此readme由ChatGPT生成，如有遗漏或者不正确的地方，请翻源码或者提 [Issues](https://github.com/kazeliu/kaze-cesium-helper/issues) 。本代码初衷是给自己用，所以有些封装没有传值，如果需要，建议下载源码修改
