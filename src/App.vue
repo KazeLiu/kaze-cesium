@@ -51,9 +51,9 @@ const demo = () => {
     }
     if (type == 2) {
       func.clg('添加线,', cartesian3List.map(x => cesium.cartesian3ToDegree2(x)))
-      func.clg('每段长度,', cartesian3List.map((x, index) => {
+      func.clg('每段长度带地形,', cartesian3List.map((x, index) => {
         if (index >= 1) {
-          return cesium.computePointDistance(cartesian3List[index], cartesian3List[index - 1])
+          return cesium.computePointDistanceWithTerrain(cartesian3List[index], cartesian3List[index - 1])
         }
       }))
     }
@@ -103,7 +103,8 @@ const demo = () => {
   let heatMapPoint = [];
   for (let i = 0; i < 500; i++) {
     let randomLng = Math.random() * (113.082 - 112.876) + 112.876;
-    let randomLat = Math.random() * (28.300 - 28.112) + 28.112; ;
+    let randomLat = Math.random() * (28.300 - 28.112) + 28.112;
+    ;
     let randomValue = Math.floor(Math.random() * 101);
 
     let entry = {

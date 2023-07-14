@@ -75,7 +75,7 @@ export default class CesiumEvent {
      */
     event(handler, viewer) {
         let that = this;
-        // 这个是当前的经纬度列表，包含点线面Entity的经纬度点。点击右键的时候会通过监听geometryData方法返回
+        // 这个是当前的世界坐标系列表，包含点线面Entity的世界坐标系点。点击右键的时候会通过监听geometryData方法返回
         let activeShapePoint = [];
         // 这个实体，是一个点，会随着鼠标移动而更改，每次右键后删除
         let activeEntity = null;
@@ -85,6 +85,7 @@ export default class CesiumEvent {
         let markerList = [];
         // 当前正在画的实体的id，鼠标点一下，图形多一个点，这个index+1，用于后期按住alt+鼠标点击圆点时找到被选的正在画的实体的那个拐角坐标
         let drewMarkerIndex = 0;
+
         /**
          * 停止画线面
          * @param saveEntity 是否保存实体 不保存实体约等于取消这次画图
@@ -114,7 +115,7 @@ export default class CesiumEvent {
                 } else if (that._type == 2) {
                     entityList = that.geometry.addLine({positions: activeShapePoint}, 'defaultDraw');
                 } else if (that._type == 3) {
-                       entityList = that.geometry.addPolygon({positions: activeShapePoint}, 'defaultDraw');
+                    entityList = that.geometry.addPolygon({positions: activeShapePoint}, 'defaultDraw');
                 } else if (that._type == 4) {
                     let newHole = activeShapePoint.map(x => that.utils.cartesian3ToDegree2(x, 1))
                     // 首尾相连 下同
@@ -271,19 +272,20 @@ export default class CesiumEvent {
                             that.geometry.markerAddLabel(activeEntity, `${location.longitude.toFixed(6)},${location.latitude.toFixed(6)}`)
                             return;
                         }
-                        let length = 0;
+                        let terrainLength = 0, length = 0;
                         // 计算长度
                         for (let i = 1; i < activeShapePoint.length; i++) {
-                            length += that.utils.computePointDistance(activeShapePoint[i], activeShapePoint[i - 1]);
+                            terrainLength += that.utils.computePointDistanceWithTerrain(activeShapePoint[i], activeShapePoint[i - 1]);
+                            length += that.utils.computePointDistance(that.utils.cartesian3ToDegree2(activeShapePoint[i],1), that.utils.cartesian3ToDegree2(activeShapePoint[i - 1],1));
                         }
                         if (that._type == 2) {
-                            that.geometry.markerAddLabel(activeEntity, `共${length.toFixed(2)}米`)
+                            that.geometry.markerAddLabel(activeEntity, `共${terrainLength.toFixed(2)}米，投影长度${length.toFixed(2)}米`)
                         }
                         // 面积计算未包含起伏山地的计算 只有投影大小
                         if ((that._type == 3 || that._type == 4) && activeShapePoint.length > 2) {
                             let area = that.utils.computePolygonArea(activeShapePoint.map(x => that.utils.cartesian3ToDegree2(x, 1)));
                             // 周长还需要添加一个末尾点到起始点的距离
-                            length += that.utils.computePointDistance(activeShapePoint[activeShapePoint.length - 1], activeShapePoint[0]);
+                            length += that.utils.computePointDistanceWithTerrain(activeShapePoint[activeShapePoint.length - 1], activeShapePoint[0]);
                             that.geometry.markerAddLabel(activeEntity, `周长${length.toFixed(2)}米，面积${area.toFixed(2)}平方米`)
                         }
                     }

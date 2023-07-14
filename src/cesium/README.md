@@ -267,7 +267,7 @@ const func = reactive({
 
 将 Cartesian3 坐标转换为经纬度坐标。参数 `cartesian3` 是一个 Cartesian3 对象，参数 `isArr` 是一个布尔值，表示是否返回数组格式的经纬度坐标。
 
-#### CesiumKaze.computePointDistance(cartesian1, cartesian2)
+#### CesiumKaze.computePointDistanceWithTerrain(cartesian1, cartesian2)
 
 计算两个点之间的距离。参数 `cartesian1` 和 `cartesian2` 是 Cartesian3 对象，表示两个点的坐标。
 

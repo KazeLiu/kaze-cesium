@@ -74,7 +74,12 @@ export default class CesiumUtils {
     /**
      * 世界坐标系转经纬度
      * 在Cesium中，Cesium.Cartographic.fromCartesian 方法只能使用 WGS84 椭球体 所以不用。
-     * type 0:返回对象 1:返回没有高度的数组
+     * type 0:返回对象 {
+     *                 longitude,
+     *                 latitude,
+     *                 altitude
+     *             }
+     *      1:返回没有高度的数组 [longitude, latitude]
      */
     cartesian3ToDegree2(cartesian, type = 0) {
         if (!cartesian) {
@@ -98,12 +103,24 @@ export default class CesiumUtils {
     }
 
     /**
-     * 长度计算
+     * 长度计算 带地形
      * @param point1 世界坐标系
      * @param point2 世界坐标系
      */
-    computePointDistance(point1, point2) {
+    computePointDistanceWithTerrain(point1, point2) {
         return Cesium.Cartesian3.distance(this.convertToCartesian3(point1), this.convertToCartesian3(point2));
+    }
+
+    /**
+     * 长度计算 不带地形
+     * @param point1 经纬度 [longitude1, latitude1]
+     * @param point2 经纬度 [longitude2, latitude2]
+     */
+    computePointDistance(point1, point2) {
+        if (point1 && point2) {
+            return turf.distance(point1, point2, {units: 'meters'});
+        }
+        return 0
     }
 
     /**
