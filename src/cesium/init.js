@@ -4,30 +4,45 @@ export default class CesiumInit {
     viewer = null;
     dataSourceList = [];
 
-    constructor(domId, option) {
-        Cesium.Camera.DEFAULT_VIEW_RECTANGLE = Cesium.Rectangle.fromDegrees(89.5, 20.4, 110.4, 61.2);
+    /**
+     * 初始化
+     * @param domId id
+     * @param option 设置项
+     * @param isOffline 是否为离线运行 如果是离线运行 需要在option添加配置项 IMAGERY_PROVIDER:[]
+     */
+    constructor(domId, option, isOffline) {
+        // 初始化时摄像机视角 在 new CesiumKaze().init 的option里面添加
+        // DEFAULT_VIEW_RECTANGLE: Cesium.Rectangle.fromDegrees(89.5, 20.4, 110.4, 61.2),
+        if (option.DEFAULT_VIEW_RECTANGLE) {
+            Cesium.Camera.DEFAULT_VIEW_RECTANGLE = option.DEFAULT_VIEW_RECTANGLE;
+        }
+        let defOption = {};
+        if (isOffline != true) {
+            // 官方地形数据
+            defOption.terrain = Cesium.Terrain.fromWorldTerrain();
+        }
         // 新建地球视图
         this.viewer = new Cesium.Viewer(domId, Object.assign({
-            terrain: Cesium.Terrain.fromWorldTerrain(),
             infoBox: false,
             baseLayerPicker: false, // 图层小部件
             geocoder: false, // 搜索按钮
             timeline: false, // 时间轴
             animation: false, // 时钟按钮
-            homeButton: false,
             navigationHelpButton: false, // 帮助按钮销毁,
-            // homeButton: false, // 主页按钮
+            homeButton: false, // 主页按钮
             sceneModePicker: false, // 视图模式切换按钮
             fullscreenButton: false, // 全屏按钮
-            // imageryProvider: new Cesium.UrlTemplateImageryProvider({
-            //     url: window.imageryProvider,
-            //     tilingScheme: new Cesium.WebMercatorTilingScheme(),
-            // }),
-            // terrainProvider: new Cesium.CesiumTerrainProvider({
-            //     url: window.terrainProvider,
-            // }),
             terrainExaggeration: 100
-        }, option));
+        }, defOption, option));
+        // 多个图层可以叠加 在 new CesiumKaze().init 的option里面添加
+        // IMAGERY_PROVIDER: [
+        //       new Cesium.UrlTemplateImageryProvider({
+        //         url: '/map/{z}/{x}/{y}.jpg',
+        //       }),
+        //     ]
+        if (option.IMAGERY_PROVIDER) {
+            option.IMAGERY_PROVIDER.forEach(item => this.viewer.imageryLayers.addImageryProvider(item));
+        }
     }
 
     getViewer() {

@@ -30,12 +30,20 @@
 <script setup>
 import {onMounted, reactive, ref} from "vue";
 import CesiumKaze from "./cesium/index.js";
+import * as Cesium from "cesium";
 
 const showBtn = ref(false);
 let cesium = null;
 
 onMounted(async () => {
-  cesium = await new CesiumKaze().init('cesium-dom');
+  cesium = await new CesiumKaze().init('cesium-dom', {
+    DEFAULT_VIEW_RECTANGLE: Cesium.Rectangle.fromDegrees(89.5, 20.4, 110.4, 61.2),
+    IMAGERY_PROVIDER: [
+      new Cesium.UrlTemplateImageryProvider({
+        url: '/map/{z}/{x}/{y}.jpg',
+      }),
+    ]
+  }, true);
   showBtn.value = true;
   demo();
   range.init();

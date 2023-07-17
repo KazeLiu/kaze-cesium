@@ -4,15 +4,14 @@ import CesiumGeometry from "./geometry.js";
 import CesiumEvent from "./event.js"
 
 
-
 /**
  * 配置总览：
  * 初始化的option是cesium的内容，包含Cesium.Viewer的全部设置项目，详见 https://cesium.com/learn/cesiumjs/ref-doc/Viewer.html#.ConstructorOptions
  */
 
 export default class CesiumKaze {
-    async init(domId, option) {
-        let init = new CesiumInit(domId, option);
+    async init(domId, option, isOffline) {
+        let init = new CesiumInit(domId, option, isOffline);
         await init.init();
         let utils = new CesiumUtils(init.getViewer());
         let geometry = new CesiumGeometry(init.getViewer());

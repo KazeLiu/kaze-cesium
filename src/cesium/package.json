@@ -1,8 +1,8 @@
 {
   "name": "kaze-cesium-helper",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "description": "A Cesium wrapper library for drawing points, lines, polygons, and calculating length and area.",
-  "main": "dist/index.js",
+  "main": "index.js",
   "scripts": {
     "build": "vite build",
     "dev": "vite",
