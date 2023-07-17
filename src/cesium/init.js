@@ -16,6 +16,9 @@ export default class CesiumInit {
         if (option.DEFAULT_VIEW_RECTANGLE) {
             Cesium.Camera.DEFAULT_VIEW_RECTANGLE = option.DEFAULT_VIEW_RECTANGLE;
         }
+        if (option.DATA_SOURCE_LIST) {
+            this.dataSourceList = option.DATA_SOURCE_LIST;
+        }
         let defOption = {};
         if (isOffline != true) {
             // 官方地形数据
@@ -23,16 +26,15 @@ export default class CesiumInit {
         }
         // 新建地球视图
         this.viewer = new Cesium.Viewer(domId, Object.assign({
-            infoBox: false,
+            infoBox: false, // 信息盒子
             baseLayerPicker: false, // 图层小部件
             geocoder: false, // 搜索按钮
             timeline: false, // 时间轴
             animation: false, // 时钟按钮
-            navigationHelpButton: false, // 帮助按钮销毁,
+            navigationHelpButton: false, // 帮助按钮,
             homeButton: false, // 主页按钮
             sceneModePicker: false, // 视图模式切换按钮
             fullscreenButton: false, // 全屏按钮
-            terrainExaggeration: 100
         }, defOption, option));
         // 多个图层可以叠加 在 new CesiumKaze().init 的option里面添加
         // IMAGERY_PROVIDER: [

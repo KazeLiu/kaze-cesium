@@ -8,6 +8,23 @@ export default class CesiumUtils {
     }
 
     /**
+     * 控制台输出内容
+     * @param type 1 info 2 warn 3 error
+     * @param data
+     */
+    kazeConsole(type, data) {
+        if (type == 1) {
+            console.log(new Date(), data)
+        }
+        if (type == 2) {
+            console.warn(new Date(), data)
+        }
+        if (type == 3) {
+            console.error(new Date(), data)
+        }
+    }
+
+    /**
      * js生成uuid
      */
     generateUUID() {
@@ -214,16 +231,6 @@ export default class CesiumUtils {
         const longitude = Cesium.Math.toDegrees(cartographic.longitude);
         const latitude = Cesium.Math.toDegrees(cartographic.latitude);
         return [longitude, latitude]
-    }
-
-    /**
-     * 通过id获取entity
-     * @param id
-     * @returns {Entity}
-     */
-    getEntityById(id) {
-        let viewer = this.viewer;
-        return viewer.entities.getById(id);
     }
 
     /**

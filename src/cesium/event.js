@@ -143,8 +143,7 @@ export default class CesiumEvent {
                                 }
                             })
                             if (isError) {
-                                alert("洞相交，当前图形作废")
-                                that.trigger('kazeError', "洞相交，当前图形作废")
+                                that.utils.kazeConsole(2,"洞相交，当前图形作废");
                                 return;
                             }
                             // 判定是否包含在这个entity内
@@ -155,8 +154,7 @@ export default class CesiumEvent {
                                 hierarchy.holes.push({positions: that.utils.convertToCartesian3(newHole)});
                                 entity.polygon.hierarchy = hierarchy
                             } else {
-                                alert("父级未完全包含洞，当前图形作废")
-                                that.trigger('kazeError', "父级未完全包含洞，当前图形作废")
+                                that.utils.kazeConsole(2,"父级未完全包含洞，当前图形作废");
                                 return;
                             }
                             that.trigger("holeDraw", entity);

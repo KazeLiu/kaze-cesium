@@ -107,7 +107,6 @@ const demo = () => {
   cesium.historyLine(marker, line);
 
   // 添加热力图
-
   let heatMapPoint = [];
   for (let i = 0; i < 500; i++) {
     let randomLng = Math.random() * (113.082 - 112.876) + 112.876;
@@ -124,6 +123,41 @@ const demo = () => {
     heatMapPoint.push(entry);
   }
   cesium.addHeatMap(heatMapPoint)
+
+  // 添加掏洞的图
+  cesium.addPolygon({
+    positions: [
+      [-99.0,
+        30.0],
+      [-85.0,
+        30.0],
+      [-85.0,
+        40.0],
+      [-99.0,
+        40.0],
+    ],
+    holes: [{
+      positions: cesium.convertToCartesian3([[-97.0,
+        31.0],
+        [-97.0,
+          39.0],
+        [-87.0,
+          39.0],
+        [-87.0,
+          31.0],]), holes: [{
+        positions: cesium.convertToCartesian3([
+          [-95.0,
+            33.0],
+          [-89.0,
+            33.0],
+          [-89.0,
+            37.0],
+          [-95.0,
+            37.0],
+        ])
+      }]
+    }]
+  })
 }
 
 // 控制时间轴

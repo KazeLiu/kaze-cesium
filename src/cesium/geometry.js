@@ -37,6 +37,17 @@ export default class CesiumGeometry {
     }
 
     /**
+     * 按组别批量删除entity（按组名称）
+     * @param collectionName 组名
+     */
+    removeCollection(collectionName) {
+        let list = this.viewer.dataSources.getByName(collectionName)
+        if (list && list.length > 0) {
+            list[0].entities.removeAll();
+        }
+    }
+
+    /**
      * 根据查找entity
      */
     getEntityById(id) {
@@ -50,23 +61,6 @@ export default class CesiumGeometry {
      * @returns {module:cesium.Entity}
      */
     addMarker(marker = {}, collectionName) {
-
-        // 添加海量点技术储备 https://www.cnblogs.com/onsummer/p/14059204.html
-        // let billboards = cesium.getViewer().scene.primitives.add(
-        //     new Cesium.BillboardCollection()
-        // );
-        //
-        // for (let i = 0; i < 100000; i++) {
-        //     // 生成随机经纬度
-        //     let longitude = Math.random() * (135.0417 - 73.5577) + 73.5577;
-        //     let latitude = Math.random() * (53.5608 - 18.1566) + 18.1566;
-        //     billboards.add({
-        //         position: new Cesium.Cartesian3.fromDegrees(longitude, latitude, 10.0),
-        //         image: '/public/logo.jpg',
-        //         scale:0.3
-        //     });
-        // }
-
         const id = this.utils.generateUUID();
         let info = Object.assign({
             scale: 0.1,
@@ -88,7 +82,6 @@ export default class CesiumGeometry {
             description: info.description,
             hasLabel: info.hasLabel,
             hasMove: info.hasMove,
-
         });
         if (info.iconImage) {
             entity.billboard = new Cesium.BillboardGraphics({
@@ -188,6 +181,13 @@ export default class CesiumGeometry {
                 material: this.utils.colorToCesiumRGB('#23ADE5', 0.7),
             },
         });
+        if (info.holes) {
+            let hierarchy = polygon.polygon.hierarchy.getValue(undefined)
+            if (hierarchy) {
+                hierarchy.holes.push(...info.holes);
+            }
+
+        }
         this.addEntityToCollection(polygon, collectionName)
         return polygon
     }
@@ -241,7 +241,7 @@ export default class CesiumGeometry {
             {
                 // zoomToLayer: true, 自动到热力图范围
                 points: data,
-                renderType:"entity",
+                renderType: "entity",
                 heatmapDataOptions: {max: 100, min: 0},
                 heatmapOptions: {
                     maxOpacity: 0.8,
