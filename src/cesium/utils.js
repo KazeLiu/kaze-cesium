@@ -257,4 +257,18 @@ export default class CesiumUtils {
             alpha
         );
     }
+
+    /**
+     * 视角聚焦到经纬度
+     * @param lng 经度
+     * @param lat 纬度
+     * @param height 高度 默认50000
+     */
+    cameraFly(lng, lat, height = 50000) {
+        let viewer = this.viewer;
+        viewer.camera.flyTo({
+            duration: 1,
+            destination: Cesium.Cartesian3.fromDegrees(lng, lat, height)
+        })
+    }
 }

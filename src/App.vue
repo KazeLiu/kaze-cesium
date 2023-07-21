@@ -92,19 +92,35 @@ const demo = () => {
   // 添加一个点
   let marker = cesium.addMarker({
     iconImage: `/public/logo.jpg`,
+    id: 111,
+    attachImage: [{
+      url: `/public/logo2.jpg`,
+      pixelOffset:{x: 500, y: 250}
+    },
+      {
+        url: `/public/vite.svg`,
+        pixelOffset: {x: 50, y: 25}
+      }],
     name: '原神',
     scale: 0.20,
+    hasMove: true,
+    hasLabel: true,
+    labelOption: {},
     position: [112, 29]
   })
 
+  // setTimeout(() => {
+  //   cesium.removeEntity(marker.id)
+  // }, 5000)
+
   // 添加轨迹移动
-  let line = [
-    {time: '2023-07-10 12:00:00', position: [74.1237, 33.4324]},
-    {time: '2023-07-12 12:00:00', position: [112.4882, 15.9999]},
-    {time: '2023-07-14 12:00:00', position: [126.1321, 39.2452]},
-    {time: '2023-07-16 12:00:00', position: [136.1237, 49.4324]},
-  ];
-  cesium.historyLine(marker, line);
+  // let line = [
+  //   {time: '2023-07-10 12:00:00', position: [74.1237, 33.4324]},
+  //   {time: '2023-07-12 12:00:00', position: [112.4882, 15.9999]},
+  //   {time: '2023-07-14 12:00:00', position: [126.1321, 39.2452]},
+  //   {time: '2023-07-16 12:00:00', position: [136.1237, 49.4324]},
+  // ];
+  // cesium.historyLine(marker, line);
 
   // 添加热力图
   let heatMapPoint = [];

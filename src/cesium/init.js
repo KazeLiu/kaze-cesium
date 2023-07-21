@@ -64,7 +64,7 @@ export default class CesiumInit {
         // 项目中默认添加两个defaultCollection和defaultDraw
         // 添加的实体但是没有规定类别时全部添加到defaultCollection
         // 手动画的点线面归类到defaultDraw
-        [...new Set(['defaultCollection', 'defaultDraw', ...this.dataSourceList])].forEach(name => {
+        [...new Set(['defaultCollection', 'defaultDraw', 'defaultPrimitives', ...this.dataSourceList])].forEach(name => {
             const dataSource = new Cesium.CustomDataSource(name);
             promiseList.push(this.viewer.dataSources.add(dataSource));
         })

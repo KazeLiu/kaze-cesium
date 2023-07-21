@@ -18,6 +18,7 @@ export default class CesiumEvent {
         this.geometry = new CesiumGeometry(viewer);
         this.utils = new CesiumUtils(viewer);
         this.event(new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas), viewer);
+        this.getNorth();
     }
 
     /**
@@ -143,7 +144,7 @@ export default class CesiumEvent {
                                 }
                             })
                             if (isError) {
-                                that.utils.kazeConsole(2,"洞相交，当前图形作废");
+                                that.utils.kazeConsole(2, "洞相交，当前图形作废");
                                 return;
                             }
                             // 判定是否包含在这个entity内
@@ -154,7 +155,7 @@ export default class CesiumEvent {
                                 hierarchy.holes.push({positions: that.utils.convertToCartesian3(newHole)});
                                 entity.polygon.hierarchy = hierarchy
                             } else {
-                                that.utils.kazeConsole(2,"父级未完全包含洞，当前图形作废");
+                                that.utils.kazeConsole(2, "父级未完全包含洞，当前图形作废");
                                 return;
                             }
                             that.trigger("holeDraw", entity);
@@ -174,8 +175,9 @@ export default class CesiumEvent {
             } else if (that._type == 0) {
                 // 返回点击的经纬度或者是entity点
                 const pick = viewer.scene.pick(evt.position)
+                const position = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.position), viewer.scene)
                 if (pick) {
-                    const info = {entity: pick?.id};
+                    const info = {entity: pick?.id, position: that.utils.cartesian3ToDegree2(position)};
                     that.trigger("handleClick", info);
                 }
             } else if ([1, 2, 3, 4].includes(that._type)) {
@@ -227,13 +229,14 @@ export default class CesiumEvent {
         // 右键
         handler.setInputAction(evt => {
             if (that._type == null) {
-                const pick = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.position), viewer.scene);
-                if (pick) {
-                    const position = that.utils.cartesian3ToDegree2(pick);
-                    let info = {
-                        position, id: pick?.id?.id
-                    }
-                    that.trigger("contextMenu", info);
+                const pick = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.position), viewer.scene)
+                return that.utils.cartesian3ToDegree2(pick);
+            } else if (that._type == 0) {
+                const pick = viewer.scene.pick(evt.position)
+                const position = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.position), viewer.scene)
+                if (pick && position) {
+                    const info = {entity: pick?.id, position: that.utils.cartesian3ToDegree2(position)};
+                    that.trigger("handleClick", info);
                 }
             } else {
                 stopDrawing(true);
@@ -274,7 +277,7 @@ export default class CesiumEvent {
                         // 计算长度
                         for (let i = 1; i < activeShapePoint.length; i++) {
                             terrainLength += that.utils.computePointDistanceWithTerrain(activeShapePoint[i], activeShapePoint[i - 1]);
-                            length += that.utils.computePointDistance(that.utils.cartesian3ToDegree2(activeShapePoint[i],1), that.utils.cartesian3ToDegree2(activeShapePoint[i - 1],1));
+                            length += that.utils.computePointDistance(that.utils.cartesian3ToDegree2(activeShapePoint[i], 1), that.utils.cartesian3ToDegree2(activeShapePoint[i - 1], 1));
                         }
                         if (that._type == 2) {
                             that.geometry.markerAddLabel(activeEntity, `共${terrainLength.toFixed(2)}米，投影长度${length.toFixed(2)}米`)
@@ -288,11 +291,11 @@ export default class CesiumEvent {
                         }
                     }
                 }
-            } else if (that._type == 5) {
+            } else if (that._type == 5 && Cesium.defined(drewEntity)) {
                 drewEntity.position.setValue(pick);
             }
             // 切换到非画图时，走一次删除，把没花完的全部清除
-            if (that._type == 0 && Cesium.defined(activeEntity)) {
+            else if (that._type == 0 && Cesium.defined(activeEntity)) {
                 stopDrawing(false);
             }
         }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
@@ -301,8 +304,11 @@ export default class CesiumEvent {
         handler.setInputAction(evt => {
             const pick = viewer.scene.pick(evt.position)
             if (that._type == 5 && Cesium.defined(pick?.id)) {
-                that.utils.lockCamera()
-                drewEntity = pick?.id;
+                // 只有标记了hasMove才能被移动
+                if (pick.id.hasMove) {
+                    that.utils.lockCamera()
+                    drewEntity = pick?.id;
+                }
             }
         }, Cesium.ScreenSpaceEventType.LEFT_DOWN);
 
@@ -374,5 +380,25 @@ export default class CesiumEvent {
         //         popPoint = null;
         //     }
         // });
+    }
+
+    getNorth() {
+        let that = this;
+        let oldNorthAngle = null;
+        // 注册时钟的tick事件
+        this._viewer.scene.preRender.addEventListener(function () {
+            // 获取当前视图的朝向（方向）
+            let viewHeading = that._viewer.camera.heading;
+
+            // 将视图的朝向转换为角度（0-360）
+            let viewHeadingDeg = Cesium.Math.toDegrees(viewHeading);
+
+            // 计算地图的北方向角度
+            let northAngle = (360.0 - viewHeadingDeg) % 360.0;
+            if (oldNorthAngle != northAngle) {
+                that.trigger('northAngle', northAngle)
+                oldNorthAngle = northAngle
+            }
+        });
     }
 }
