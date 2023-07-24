@@ -113,9 +113,9 @@ onMounted(async () => {
 - `holeDraw`：掏洞完成后的事件，返回一个参数
     - `entity` 被掏洞的那个图标信息，掏洞的图标信息在`draw`返回的参数内
 - `handleClick`：点击图形的事件，返回一个参数，但是type必须等于0 （怎么调整type值在下面有写）
-    - `info` 返回被选中的图形(info.entity)和经纬度海拔(info.position)
+    - `info` 返回被选中的图形(info.entity)和经纬度海拔(info.position)和屏幕坐标(info.windowCoordinates)
 - `contextMenu`：右键事件，返回一个参数
-    - `info` 返回被选中的图形(info.entity)和经纬度海拔(info.position)
+    - `info` 返回被选中的图形(info.entity)和经纬度海拔(info.position)和屏幕坐标(info.windowCoordinates)
 
 #### CesiumKaze.off(event)
 
@@ -448,7 +448,7 @@ CesiumKaze.addMarker({}, 'aa')
     - `alpha`：Number，透明度。
 
 - 返回值：Cesium.Color，Cesium 使用的颜色对象。
-- 
+
 - ---
 
 #### cameraFly(lng, lng, height = 50000)
@@ -461,6 +461,25 @@ CesiumKaze.addMarker({}, 'aa')
   - `height`：Number，高度，默认50000米。
 
 - 返回值：无。
+
+---
+
+#### wgs84ToWindowCoordinates(scene, cartesian3)
+
+世界坐标系转成屏幕坐标
+
+- 参数：
+  - `scene`：Object，屏幕对象。
+  - `cartesian3`：Object，世界坐标系。
+
+- 示例：鼠标点击地球获取屏幕坐标
+```js
+const position = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.position), viewer.scene)
+const windowCoordinates = that.utils.wgs84ToWindowCoordinates(viewer.scene, position);
+// 返回值 {x:604 , y:182}
+```
+
+- 返回值：屏幕坐标。
 
 ## 部分示例
 
