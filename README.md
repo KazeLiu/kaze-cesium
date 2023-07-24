@@ -44,8 +44,6 @@ export default defineConfig(({mode, command}) => {
 | geometry.js | 几何体操作         |
 | utils.js    | 底层计算方法        |
 
-他们分别作用为：事件操作，cesium组件操作，
-
 ## 使用
 
 #### 我希望初始化的时候能使用await，因为cesium新建集合的时候，它是异步的
@@ -93,7 +91,7 @@ onMounted(async () => {
 |------------------------|---------------------------------------------------|------|--------------------------------------------------------------------------|
 | DEFAULT_VIEW_RECTANGLE | 它是初始化地球后摄像机的位置，说人话就是一开始地球展示的面的四个角的经纬度             | null | Cesium.Rectangle.fromDegrees(89.5, 20.4, 110.4, 61.2)                    |
 | IMAGERY_PROVIDER       | 图层，在初始化时，如果isOffline为true，则必填                     | null | [new Cesium.UrlTemplateImageryProvider({ url: '/map/{z}/{x}/{y}.jpg' })] |
-| DATA_SOURCE_LIST       | 集合名称，用于批量显示隐藏(暂时只有这么多功能,后续添加删除等)，将添加的图形添加到集合内批量控制 | null | [new Cesium.UrlTemplateImageryProvider({ url: '/map/{z}/{x}/{y}.jpg' })] |
+| DATA_SOURCE_LIST       | 集合名称，用于批量显示隐藏(暂时只有这么多功能,后续添加删除等)，将添加的图形添加到集合内批量控制 | null | ['aa']                                                                   |
 
 ### 事件监听API  它们都event.js内
 
@@ -126,7 +124,7 @@ onMounted(async () => {
 
 ### 图形操作API  它们都在geometry.js内
 
-没有标记为‘组件自定义属性’为官方属性
+没有标记为`组件自定义属性`为官方属性
 
 #### CesiumKaze.addMarker(options,collectionName)
 
