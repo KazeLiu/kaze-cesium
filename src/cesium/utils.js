@@ -9,18 +9,18 @@ export default class CesiumUtils {
 
     /**
      * 控制台输出内容
-     * @param type 1 info 2 warn 3 error
+     * @param type 2 warn 3 error ||  warn error || other => log
      * @param data
      */
-    kazeConsole(type, data) {
-        if (type == 1) {
-            console.log(new Date(), data)
-        }
-        if (type == 2) {
+    kazeConsole(data,type) {
+        if (type == 2 || type == 'warn') {
             console.warn(new Date(), data)
         }
-        if (type == 3) {
+        if (type == 3 || type == 'error') {
             console.error(new Date(), data)
+        }
+        else{
+            console.log(new Date(), data)
         }
     }
 

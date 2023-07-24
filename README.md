@@ -116,6 +116,9 @@ onMounted(async () => {
     - `info` 返回被选中的图形(info.entity)和经纬度海拔(info.position)和屏幕坐标(info.windowCoordinates)
 - `contextMenu`：右键事件，返回一个参数
     - `info` 返回被选中的图形(info.entity)和经纬度海拔(info.position)和屏幕坐标(info.windowCoordinates)
+- `cameraMove`：视角移动事件，当摄像机高度改变和转动地球的时候触发
+    - `info` 返回摄像机中心点的经纬度海拔和摄像机高度
+
 
 #### CesiumKaze.off(event)
 

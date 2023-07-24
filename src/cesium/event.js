@@ -87,6 +87,9 @@ export default class CesiumEvent {
         // 当前正在画的实体的id，鼠标点一下，图形多一个点，这个index+1，用于后期按住alt+鼠标点击圆点时找到被选的正在画的实体的那个拐角坐标
         let drewMarkerIndex = 0;
 
+        // 是否保持着鼠标按下的操作
+        let handleLeftDown = false;
+
         /**
          * 停止画线面
          * @param saveEntity 是否保存实体 不保存实体约等于取消这次画图
@@ -144,7 +147,7 @@ export default class CesiumEvent {
                                 }
                             })
                             if (isError) {
-                                that.utils.kazeConsole(2, "洞相交，当前图形作废");
+                                that.utils.kazeConsole("洞相交，当前图形作废", 2);
                                 return;
                             }
                             // 判定是否包含在这个entity内
@@ -155,7 +158,7 @@ export default class CesiumEvent {
                                 hierarchy.holes.push({positions: that.utils.convertToCartesian3(newHole)});
                                 entity.polygon.hierarchy = hierarchy
                             } else {
-                                that.utils.kazeConsole(2, "父级未完全包含洞，当前图形作废");
+                                that.utils.kazeConsole("父级未完全包含洞，当前图形作废", 2);
                                 return;
                             }
                             that.trigger("holeDraw", entity);
@@ -309,10 +312,17 @@ export default class CesiumEvent {
             else if (that._type == 0 && Cesium.defined(activeEntity)) {
                 stopDrawing(false);
             }
+
+            if (handleLeftDown) {
+                let center = viewer.camera.position;
+                let location = that.utils.cartesian3ToDegree2(center);
+                that.trigger('cameraMove', {...location, cameraHeight: viewer.camera.positionCartographic.height})
+            }
         }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
         // 鼠标按下
         handler.setInputAction(evt => {
+            handleLeftDown = true;
             const pick = viewer.scene.pick(evt.position)
             if (that._type == 5 && Cesium.defined(pick?.id)) {
                 // 只有标记了hasMove才能被移动
@@ -325,6 +335,7 @@ export default class CesiumEvent {
 
         // 鼠标抬起
         handler.setInputAction(evt => {
+            handleLeftDown = false;
             if (that._type == 5 && Cesium.defined(drewEntity)) {
                 drewEntity = null;
                 that.utils.unlockCamera()
@@ -359,6 +370,12 @@ export default class CesiumEvent {
             }
         }, Cesium.ScreenSpaceEventType.LEFT_DOWN, Cesium.KeyboardEventModifier.ALT)
 
+        handler.setInputAction(() => {
+            let center = viewer.camera.position;
+            let location = that.utils.cartesian3ToDegree2(center);
+            that.trigger('cameraMove', {...location, cameraHeight: viewer.camera.positionCartographic.height})
+        }, Cesium.ScreenSpaceEventType.WHEEL)
+
         // 监听朝向
         viewer.scene.preRender.addEventListener(function () {
             // 获取当前视图的朝向（方向）
@@ -369,6 +386,7 @@ export default class CesiumEvent {
             let northAngle = (360.0 - viewHeadingDeg) % 360.0;
             that.trigger('northAngle', northAngle)
         });
+
 
         // 不知道为什么只能触发一次，必须要移动地球一次才能再次触发一次
         // let popPoint = null;
