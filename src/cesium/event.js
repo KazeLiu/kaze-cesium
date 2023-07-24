@@ -176,8 +176,13 @@ export default class CesiumEvent {
                 // 返回点击的经纬度或者是entity点
                 const pick = viewer.scene.pick(evt.position)
                 const position = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.position), viewer.scene)
+                const windowCoordinates = that.utils.wgs84ToWindowCoordinates(viewer.scene, position);
                 if (pick) {
-                    const info = {entity: pick?.id, position: that.utils.cartesian3ToDegree2(position)};
+                    const info = {
+                        entity: pick?.id,
+                        position: that.utils.cartesian3ToDegree2(position),
+                        windowCoordinates
+                    };
                     that.trigger("handleClick", info);
                 }
             } else if ([1, 2, 3, 4].includes(that._type)) {
@@ -234,9 +239,15 @@ export default class CesiumEvent {
             } else if (that._type == 0) {
                 const pick = viewer.scene.pick(evt.position)
                 const position = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.position), viewer.scene)
+                const windowCoordinates = that.utils.wgs84ToWindowCoordinates(viewer.scene, position);
+
                 if (pick && position) {
-                    const info = {entity: pick?.id, position: that.utils.cartesian3ToDegree2(position)};
-                    that.trigger("handleClick", info);
+                    const info = {
+                        entity: pick?.id,
+                        position: that.utils.cartesian3ToDegree2(position),
+                        windowCoordinates
+                    };
+                    that.trigger("contextMenu", info);
                 }
             } else {
                 stopDrawing(true);

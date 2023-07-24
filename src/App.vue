@@ -89,6 +89,10 @@ const demo = () => {
     func.clg('entity', entity)
   })
 
+  cesium.on('contextMenu', (entity) => {
+    func.clg('entity', entity)
+  })
+
   // 添加一个点
   let marker = cesium.addMarker({
     iconImage: `/public/logo.jpg`,

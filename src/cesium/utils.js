@@ -271,4 +271,16 @@ export default class CesiumUtils {
             destination: Cesium.Cartesian3.fromDegrees(lng, lat, height)
         })
     }
+
+
+    /**
+     * 世界坐标转屏幕坐标
+     * @param scene
+     * @param cartesian3
+     * @returns {}
+     */
+    wgs84ToWindowCoordinates(scene, cartesian3) {
+        return Cesium.SceneTransforms.wgs84ToWindowCoordinates(scene, cartesian3);
+
+    }
 }
