@@ -137,14 +137,14 @@ onMounted(async () => {
 | iconImage   | 必填   |                               | 图标的图片路径                         |
 | position    | 必填   |                               | 标记点的位置，经纬度数组，例如`[112.45,45.29]` |
 | id          |      | `utils.generateUUID()`返回的随机id | 标记的id，全局唯一                      |
-| name        |      | `id`的值                        | 标记点的名称，默认等于                     |
+| name        |      | `id`的值                        | 标记点的名称，默认等于标记点的id               |
 | scale       |      | `0.1`                         | 图标的缩放比例                         |
 | point       |      | {show: false}                 | 对象，为一个点，没有大小，视觉上是一个白色的像素点       |
 | hasLabel    |      | true                          | 组件自定义属性，是否显示`name`，显示的位置在图标下方   |
 | hasMove     |      | false                         | 组件自定义属性，图标能否被拖动                 |
 | attachImage |      | []                            | 组件自定义属性，填入附加值                   |
 
-attachImage是附属值，比如一个entity添加一个图形的billboard后，还需要其他的图片，那么就用这个。
+`attachImage`是附属值，比如一个entity添加一个图形的billboard后，还需要其他的图片，那么就用这个。
 它的是一个对象数组,里面的全部参数如下
 ```js
 // 一般这么写就行了
@@ -292,7 +292,7 @@ CesiumKaze.addMarker({}, 'aa')
 
 ```
 
-插件已经使用了两个集合名称，分别为`defaultCollection`和`defaultDraw`，请避免。
+插件已经使用的名称如下，自定义分组名称时请避免。
 
 - `defaultCollection` 没有指定集合名词时实体会添加到这里
 - `defaultDraw` 画图时，那些画完的图形会添加到这里
@@ -301,8 +301,10 @@ CesiumKaze.addMarker({}, 'aa')
 ---
 
 #### CesiumKaze.changeCollectionShowAndHide(show, collectionName)
+⚠，此方法尚未完善，如果实体带附属属性请勿使用：隐藏或显示带有附属性质的点是无法隐藏附属点
 
 按组别批量显示或隐藏实体（按组名称）。
+
 
 参数 `show` 是一个布尔值，表示是否显示实体。如果为 `true`，则显示实体；如果为 `false`，则隐藏实体。
 
@@ -311,6 +313,7 @@ CesiumKaze.addMarker({}, 'aa')
 ---
 
 #### CesiumKaze.removeCollection(collectionName)
+⚠，此方法尚未完善，如果实体带附属属性请勿使用：隐藏或显示带有附属性质的点是无法隐藏附属点
 
 按组别批量删除里面全部实体(建议二次确认)。
 
