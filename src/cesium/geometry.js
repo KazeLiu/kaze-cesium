@@ -2,10 +2,11 @@
 import * as Cesium from "cesium";
 import CesiumUtils from "./utils.js";
 import {CesiumHeatmap} from "cesium-heatmap-es6"
-import {PositionProperty} from "cesium";
 
 
 export default class CesiumGeometry {
+
+    _heatMapList = [];
 
     constructor(viewer) {
         this.utils = new CesiumUtils(viewer);
@@ -52,10 +53,23 @@ export default class CesiumGeometry {
         }
     }
 
+    /**
+     * 删除全部的热力图
+     */
+    removeAllHeatMap() {
+        this._heatMapList.forEach(item => {
+            item.cesiumHeatmap.remove();
+        })
+        this._heatMapList = [];
+    }
+
     // 删除实体对象
     removeEntity(id) {
+        // 删除普通点
         let mainEntity = this.getEntityById(id);
-        mainEntity.dataSource.entities.remove(mainEntity.entity);
+        if (Cesium.defined(mainEntity)) {
+            mainEntity.dataSource.entities.remove(mainEntity.entity);
+        }
         // 删除附属
         let defaultPrimitives = this.viewer.dataSources.getByName('defaultPrimitives')[0]
         let entities = defaultPrimitives.entities.values
@@ -65,6 +79,13 @@ export default class CesiumGeometry {
             if (entity.description.getValue().searchId == id) {
                 defaultPrimitives.entities.remove(entity);
             }
+        }
+
+        // 删除热力图
+        let heatMap = this._heatMapList.find(x => x.id == 'heatMap' + id);
+        if (heatMap) {
+            heatMap.cesiumHeatmap.remove();
+            this._heatMapList = this._heatMapList.filter(x => x.id !== 'heatMap' + id);
         }
     }
 
@@ -288,30 +309,31 @@ export default class CesiumGeometry {
     }
 
     /**
-     * 热力图 要其他的（修改颜色透明度，修改最大最小值）再说
-     * @param entryList 点列表[{
+     * 热力图
+     * @param option 参数 points必填
+     * option.points = [{
      *                 "x": randomLng,
      *                 "y": randomLat,
      *                 "value": randomValue
      *             }]
+     * @returns {CesiumHeatmap}
      */
-    addHeatMap(entryList) {
-        let data = [];
-        entryList.forEach(item => {
-            data.push(item)
-        })
-        let cesiumHeatmap = new CesiumHeatmap(this.viewer,
-            {
-                // zoomToLayer: true, 自动到热力图范围
-                points: data,
-                renderType: "entity",
-                heatmapDataOptions: {max: 100, min: 0},
-                heatmapOptions: {
-                    maxOpacity: 0.8,
-                    minOpacity: 0
-                }
+    addHeatMap(option) {
+        let options = Object.assign({
+            zoomToLayer: false, //自动到热力图范围
+            renderType: "entity",
+            points: [],
+            heatmapDataOptions: {max: 100, min: 0},
+            heatmapOptions: {
+                maxOpacity: 0.8,
+                minOpacity: 0
             }
-        )
+        }, option)
+        let cesiumHeatmap = new CesiumHeatmap(this.viewer, options)
+        this._heatMapList.push({
+            id: options.id == undefined ? this.utils.generateUUID() : 'heatMap' + options.id,
+            cesiumHeatmap
+        });
         return cesiumHeatmap
     }
 }

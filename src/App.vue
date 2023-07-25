@@ -99,7 +99,7 @@ const demo = () => {
     id: 111,
     attachImage: [{
       url: `/public/logo2.jpg`,
-      pixelOffset:{x: 500, y: 250}
+      pixelOffset: {x: 500, y: 250}
     },
       {
         url: `/public/vite.svg`,
@@ -112,6 +112,8 @@ const demo = () => {
     labelOption: {},
     position: [112, 29]
   })
+
+  cesium.removeEntity(999)
 
   // setTimeout(() => {
   //   cesium.removeEntity(marker.id)
@@ -131,7 +133,6 @@ const demo = () => {
   for (let i = 0; i < 500; i++) {
     let randomLng = Math.random() * (113.082 - 112.876) + 112.876;
     let randomLat = Math.random() * (28.300 - 28.112) + 28.112;
-    ;
     let randomValue = Math.floor(Math.random() * 101);
 
     let entry = {
@@ -142,7 +143,8 @@ const demo = () => {
 
     heatMapPoint.push(entry);
   }
-  cesium.addHeatMap(heatMapPoint)
+  cesium.addHeatMap({id: 999, points: heatMapPoint})
+
 
   // 添加掏洞的图
   cesium.addPolygon({

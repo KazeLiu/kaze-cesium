@@ -4,7 +4,7 @@ kaze-cesium-helper 是一个基于 Cesium 的封装库，提供了绘制点、�
 
 ## 安装
 
-使用 npm 安装 kaze-cesium-helper，然后使用 npm 安装 vite-plugin-cesium
+使用 npm 安装 kaze-cesium-helper，然后使用 npm 安装 vite-plugin-cesium。
 
 ```bash
 npm install kaze-cesium-helper
@@ -117,7 +117,6 @@ onMounted(async () => {
 - `cameraMove`：视角移动事件，当摄像机高度改变和转动地球的时候触发
     - `info` 返回摄像机中心点的经纬度海拔和摄像机高度
 
-
 #### CesiumKaze.off(event)
 
 取消监听指定的事件
@@ -146,14 +145,15 @@ onMounted(async () => {
 
 `attachImage`是附属值，比如一个entity添加一个图形的billboard后，还需要其他的图片，那么就用这个。
 它的是一个对象数组,里面的全部参数如下
+
 ```js
 // 一般这么写就行了
 cesium.addMarker({
     attachImage: [{
-      url: `/public/logo2.jpg`,
-      pixelOffset:{x: 500, y: 250}
+        url: `/public/logo2.jpg`,
+        pixelOffset: {x: 500, y: 250}
     }]
-  })
+})
 ```
 
 | 参数          | 是否必填 | 默认值 | 描述                             |
@@ -245,11 +245,25 @@ cesium.addPolygon(
 
 ---
 
-#### CesiumKaze.addHeatMap(entryList)
+#### CesiumKaze.addHeatMap(option)
 
 添加热力图，返回热力图对象
 
-参数 `entryList` 是一个点列表，每个点是一个对象，包含以下属性：
+`注意！热力图是不会添加到集合中，所有的集合的操作是无法操作到热力图上，有单独的批量删除热力图的方法
+`
+
+参数 `option` 是一个对象包含以下属性：
+
+| 参数                 | 是否必填 | 描述             | 默认值                |
+|--------------------|------|----------------|--------------------|
+| zoomToLayer        |      | 是否自动聚焦到热力图区域范围 | false              |
+| renderType         |      | 生成的图形样式        | 'entity'           |
+| points             | 必填   | 点列表，详见下表       | []                 |
+| heatmapDataOptions |      | 对象，表示热力图的极值大小  | {max: 100, min: 0} |
+| maxOpacity         |      | 数字，最热情况下透明度    | 0.8                |
+| maxOpacity         |      | 数字，最冷情况下透明度    | 0                  |
+
+参数 `option.points` 是一个点列表，每个点是一个对象，包含以下属性：
 
 | 参数    | 是否必填 | 描述            |
 |-------|------|---------------|
@@ -301,10 +315,10 @@ CesiumKaze.addMarker({}, 'aa')
 ---
 
 #### CesiumKaze.changeCollectionShowAndHide(show, collectionName)
+
 ⚠，此方法尚未完善，如果实体带附属属性请勿使用：隐藏或显示带有附属性质的点是无法隐藏附属点
 
 按组别批量显示或隐藏实体（按组名称）。
-
 
 参数 `show` 是一个布尔值，表示是否显示实体。如果为 `true`，则显示实体；如果为 `false`，则隐藏实体。
 
@@ -313,13 +327,22 @@ CesiumKaze.addMarker({}, 'aa')
 ---
 
 #### CesiumKaze.removeCollection(collectionName)
+
 ⚠，此方法尚未完善，如果实体带附属属性请勿使用：隐藏或显示带有附属性质的点是无法隐藏附属点
 
 按组别批量删除里面全部实体(建议二次确认)。
 
 参数 `collectionName` 是集合名称。
 
+---
+
+#### CesiumKaze.removeAllHeatMap()
+
+删除全部的热力图
+
+
 ### 工具类API  它们都在utils.js内（部分） (•̀ᴗ• ) ̑̑
+
 这里面一部分是给组件用于代码自洽，没必要用，这里值列出我建议你们使用的方法
 
 #### generateUUID()
@@ -460,9 +483,9 @@ CesiumKaze.addMarker({}, 'aa')
 摄像机飞到指定的经纬度
 
 - 参数：
-  - `lng`：Number，经度。
-  - `lat`：String，纬度。
-  - `height`：Number，高度，默认50000米。
+    - `lng`：Number，经度。
+    - `lat`：String，纬度。
+    - `height`：Number，高度，默认50000米。
 
 - 返回值：无。
 
@@ -473,10 +496,11 @@ CesiumKaze.addMarker({}, 'aa')
 世界坐标系转成屏幕坐标
 
 - 参数：
-  - `scene`：Object，屏幕对象。
-  - `cartesian3`：Object，世界坐标系。
+    - `scene`：Object，屏幕对象。
+    - `cartesian3`：Object，世界坐标系。
 
 - 示例：鼠标点击地球获取屏幕坐标
+
 ```js
 const position = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.position), viewer.scene)
 const windowCoordinates = that.utils.wgs84ToWindowCoordinates(viewer.scene, position);
@@ -488,7 +512,6 @@ const windowCoordinates = that.utils.wgs84ToWindowCoordinates(viewer.scene, posi
 ## 部分示例
 
 在 Vue 组件中使用 ，请下载项目查看或查看 [App.vue](https://github.com/KazeLiu/kaze-cesium/blob/main/src/App.vue)
-
 
 ## 许可证
 
