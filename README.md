@@ -10,18 +10,18 @@ kaze-cesium-helper 是一个基于 Cesium 的封装库，提供了绘制点、�
     - [文档结构](#文档结构)
     - [使用](#使用)
     - [API 文档](#api-文档)
-        - [初始化API](#初始化api-不用你就删掉这个组件)
+        - [初始化API](#初始化api)
             - `CesiumKaze.init(domId, option, isOffline)`
               初始化 CesiumKaze 实例，并将地图渲染到指定的容器中。
 
-        - [事件监听API](#事件监听API-它们都event.js内)
+        - [事件监听API](#事件监听API)
             - `CesiumKaze.on(event, callback)`
               监听指定的事件，并在事件触发时执行回调函数。
 
             - `CesiumKaze.off(event)`
               取消监听指定的事件。
 
-        - [图形操作API](#图形操作api-它们都在geometryjs内)
+        - [图形操作API](#图形操作api)
             - `CesiumKaze.addMarker(options, collectionName)`
               添加一个标记点，返回添加的标记点的实体对象。
 
@@ -37,7 +37,7 @@ kaze-cesium-helper 是一个基于 Cesium 的封装库，提供了绘制点、�
             - `CesiumKaze.addHeatMap(option)`
               添加热力图，返回热力图对象
 
-        - [工具类API](#工具类api-它们都在utilsjs内部分)
+        - [工具类API](#工具类api)
             - `CesiumKaze.generateUUID()`
               生成 UUID。
 
@@ -138,9 +138,8 @@ export default defineConfig(({mode, command}) => {
 
 ## 使用
 
-#### 我希望初始化的时候能使用await，因为cesium新建集合的时候，它是异步的
-
 ```js
+// 初始化的时候要使用await，因为cesium新建集合的时候，它是异步的
 onMounted(async () => {
     cesium = await new CesiumKaze().init('cesium-dom');
 })
@@ -148,7 +147,9 @@ onMounted(async () => {
 
 ## API 文档
 
-### 初始化API 不用你就删掉这个组件
+### 初始化API
+
+`必须要写`
 
 #### CesiumKaze.init(domId,option,isOffline)
 
@@ -185,7 +186,9 @@ onMounted(async () => {
 | IMAGERY_PROVIDER       | 图层，在初始化时，如果isOffline为true，则必填                     | null | [new Cesium.UrlTemplateImageryProvider({ url: '/map/{z}/{x}/{y}.jpg' })] |
 | DATA_SOURCE_LIST       | 集合名称，用于批量显示隐藏(暂时只有这么多功能,后续添加删除等)，将添加的图形添加到集合内批量控制 | null | ['aa']                                                                   |
 
-### 事件监听API 它们都event.js内
+### 事件监听API
+
+它们都event.js内
 
 并不清楚在外面单独写类似于`handler.setInputAction(evt => {}, Cesium.ScreenSpaceEventType.LEFT_DOWN)` 会不会让监听失效
 
@@ -213,7 +216,9 @@ onMounted(async () => {
 
 取消监听指定的事件
 
-### 图形操作API 它们都在geometry.js内
+### 图形操作API
+
+它们都在geometry.js内
 
 没有标记为`组件自定义属性`为官方属性
 
@@ -346,14 +351,13 @@ cesium.addPolygon(
 
 参数 `option` 是一个对象包含以下属性：
 
-| 参数                 | 是否必填 | 描述             | 默认值                |
-|--------------------|------|----------------|--------------------|
-| zoomToLayer        |      | 是否自动聚焦到热力图区域范围 | false              |
-| renderType         |      | 生成的图形样式        | 'entity'           |
-| points             | 必填   | 点列表，详见下表       | []                 |
-| heatmapDataOptions |      | 对象，表示热力图的极值大小  | {max: 100, min: 0} |
-| maxOpacity         |      | 数字，最热情况下透明度    | 0.8                |
-| maxOpacity         |      | 数字，最冷情况下透明度    | 0                  |
+| 参数                 | 是否必填 | 描述             | 默认值                              |
+|--------------------|------|----------------|----------------------------------|
+| zoomToLayer        |      | 是否自动聚焦到热力图区域范围 | false                            |
+| renderType         |      | 生成的图形样式        | 'entity'                         |
+| points             | 必填   | 点列表，详见下表       | []                               |
+| heatmapDataOptions |      | 对象，表示热力图的极值大小  | {max: 100, min: 0}               |
+| heatmapOptions     |      | 对象，表示热力图的透明度大小 | {maxOpacity: 0.8, minOpacity: 0} |
 
 参数 `option.points` 是一个点列表，每个点是一个对象，包含以下属性：
 
@@ -432,7 +436,9 @@ CesiumKaze.addMarker({}, 'aa')
 
 删除全部的热力图
 
-### 工具类API 它们都在utils.js内（部分）
+### 工具类API
+
+它们都在utils.js内
 
 这里面一部分是给组件用于代码自洽，没必要用，这里值列出我建议你们使用的方法
 
