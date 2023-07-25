@@ -357,7 +357,15 @@ cesium.addPolygon(
 | renderType         |      | 生成的图形样式        | 'entity'                         |
 | points             | 必填   | 点列表，详见下表       | []                               |
 | heatmapDataOptions |      | 对象，表示热力图的极值大小  | {max: 100, min: 0}               |
-| heatmapOptions     |      | 对象，表示热力图的透明度大小 | {maxOpacity: 0.8, minOpacity: 0} |
+| heatmapOptions     |      | 对象，表示热力图设置     | {maxOpacity: 0.8, minOpacity: 0} |
+
+参数 `option.heatmapOptions` 是一个点列表，每个点是一个对象，包含以下属性：
+
+| 参数         | 默认值                                                          | 描述            |
+|------------|--------------------------------------------------------------|---------------|
+| maxOpacity | 0.8                                                          | 最大值时透明度       |
+| minOpacity | 0.8                                                          | 最小值时透明度       |
+| gradient   | { ".3": "blue", ".5": "green", ".7": "yellow",".95": "red",} | 对象，表示不同权重下的颜色 |
 
 参数 `option.points` 是一个点列表，每个点是一个对象，包含以下属性：
 

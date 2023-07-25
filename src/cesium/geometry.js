@@ -326,8 +326,9 @@ export default class CesiumGeometry {
             heatmapDataOptions: {max: 100, min: 0},
             heatmapOptions: {
                 maxOpacity: 0.8,
-                minOpacity: 0
-            }
+                minOpacity: 0,
+            },
+
         }, option)
         let cesiumHeatmap = new CesiumHeatmap(this.viewer, options)
         this._heatMapList.push({

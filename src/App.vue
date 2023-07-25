@@ -143,7 +143,7 @@ const demo = () => {
 
     heatMapPoint.push(entry);
   }
-  cesium.addHeatMap({id: 999, points: heatMapPoint})
+  cesium.addHeatMap({id: 999, points: heatMapPoint, zoomToLayer: true})
 
 
   // 添加掏洞的图
