@@ -12,14 +12,13 @@ export default class CesiumUtils {
      * @param type 2 warn 3 error ||  warn error || other => log
      * @param data
      */
-    kazeConsole(data,type) {
+    kazeConsole(data, type) {
         if (type == 2 || type == 'warn') {
             console.warn(new Date(), data)
         }
         if (type == 3 || type == 'error') {
             console.error(new Date(), data)
-        }
-        else{
+        } else {
             console.log(new Date(), data)
         }
     }
@@ -161,7 +160,7 @@ export default class CesiumUtils {
     /**
      * 标准时间转换为天文儒略日期
      * @param date
-     * @returns {JulianDate}
+     * @returns {}
      */
     iSODateToJulianDate(date) {
         return Cesium.JulianDate.fromDate(date);
@@ -180,9 +179,41 @@ export default class CesiumUtils {
      * 设置当前时间
      * @param timestamp 当前时间时间戳
      */
-    changeTimeLine(timestamp) {
+    changeCurrentTime(timestamp) {
         let julianDate = this.iSODateToJulianDate(new Date(timestamp));
         this.viewer.clock.currentTime = julianDate;
+    }
+
+
+    /**
+     * 设置时钟控制器的选项
+     * @param {Object} option - 时钟控制器的选项对象
+     * @param {boolean} option.shouldAnimate - 设置步长
+     * @param {'CLAMPED'|'LOOP_STOP'} option.clockRange -  时间轴循环模式 ("CLAMPED" 或 "LOOP_STOP")
+     * @param {Number} option.multiplier - 时间流逝速度
+     * @param {string} option.startTime - 时间轴开始时间
+     * @param {string} option.stopTime - 结束时间
+     * @returns {Cesium.Clock} - 更新后的时钟对象
+     */
+    setClockController(option) {
+        let clock = this.viewer.clock;
+        if (option.shouldAnimate) {
+            clock.shouldAnimate = option.shouldAnimate;
+        }
+        if (option.clockRange) {
+            clock.clockRange = option.clockRange == "CLAMPED" ? Cesium.ClockRange.CLAMPED : Cesium.ClockRange.LOOP_STOP;
+        }
+        if (option.multiplier) {
+            // 时间轴内播放一次就停止或循环播放
+            clock.multiplier = option.multiplier
+        }
+        if (option.startTime) {
+            clock.startTime = Cesium.JulianDate.fromDate(new Date(option.startTime));
+        }
+        if (option.stopTime) {
+            clock.stopTime = Cesium.JulianDate.fromDate(new Date(option.stopTime));
+        }
+        return clock;
     }
 
     /**
@@ -271,7 +302,6 @@ export default class CesiumUtils {
             destination: Cesium.Cartesian3.fromDegrees(lng, lat, height)
         })
     }
-
 
     /**
      * 世界坐标转屏幕坐标

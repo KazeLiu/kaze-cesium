@@ -68,7 +68,7 @@ kaze-cesium-helper 是一个基于 Cesium 的封装库，提供了绘制点、�
             - `CesiumKaze.julianDateToISODate(julianDate)`
               将天文儒略日期转换为标准时间。
 
-            - `CesiumKaze.changeTimeLine(timestamp)`
+            - `CesiumKaze.changeCurrentTime(timestamp)`
               设置当前时间。
 
             - `CesiumKaze.toN()`
@@ -540,9 +540,35 @@ CesiumKaze.addMarker({}, 'aa')
 
 ---
 
-#### changeTimeLine(timestamp)
+#### changeCurrentTime(timestamp)
 
 设置当前时间。
+
+- 参数：
+    - `timestamp`：Number，当前时间的时间戳。
+
+---
+
+#### setClockController(options)
+
+设置时钟控制器的选项，并返回更新后的时钟对象
+
+参数 `options` 是一个对象，包含以下属性：
+
+| 参数            | 描述                                |
+|---------------|-----------------------------------|
+| shouldAnimate | 设置步长                              |
+| clockRange    | 时间轴循环模式 ("CLAMPED" 或 "LOOP_STOP") |
+| multiplier    | 时间流逝速度                            |
+| startTime     | 时间轴开始时间                           |
+| stopTime      | 时间轴结束时间                           |
+
+- 返回值：
+    - 返回更新后的 Cesium.Clock 对象。
+
+#### clockController(option)
+
+设置时钟控制器的选项
 
 - 参数：
     - `timestamp`：Number，当前时间的时间戳。

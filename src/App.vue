@@ -42,7 +42,8 @@ onMounted(async () => {
       new Cesium.UrlTemplateImageryProvider({
         url: '/map/{z}/{x}/{y}.jpg',
       }),
-    ]
+    ],
+    timeline: true,
   }, true);
   showBtn.value = true;
   demo();
@@ -211,6 +212,10 @@ const range = reactive({
     range.timeRange.addEventListener('input', range.updateTimeInputs);
   },
   updateTimeRange(currentDate) {
+    cesium.setClockController({
+      startTime: range.startTimeInput.value,
+      stopTime: range.endTimeInput.value,
+    })
     let startTime = new Date(range.startTimeInput.value);
     let endTime = new Date(range.endTimeInput.value);
     range.timeRange.min = startTime.getTime();
@@ -220,7 +225,7 @@ const range = reactive({
 
   },
   updateTimeInputs() {
-    cesium.changeTimeLine(parseFloat(range.timeRange.value))
+    cesium.changeCurrentTime(parseFloat(range.timeRange.value))
     range.timeRangeInput.value = new Date(parseFloat(range.timeRange.value)).toISOString().slice(0, 16)
   }
 })
