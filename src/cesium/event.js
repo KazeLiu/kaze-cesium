@@ -72,40 +72,59 @@ export default class CesiumEvent {
     changeMouseEventType(type, showDistance = true) {
         this._showDistance = showDistance
         this._type = type
-        // 如果设置为6  查找地球上全部的线和面，然后每个拐点放一个图标 允许拖拽
+        // 如果设置type为6  查找地球上全部的线和面，然后每个拐点放一个图标 允许拖拽
         if (this._type == 6) {
             let allEntity = this.geometry.getAllEntity();
-            let positionList = [];
             allEntity.forEach(entity => {
-                if (Cesium.defined(entity.polyline)) {
-                    entity.polyline.positions.getValue().forEach((position, index) => {
-                        positionList.push({
-                            entity,
-                            position,
-                            index
-                        });
-                    });
-                }
-                if (Cesium.defined(entity.polygon)) {
-                    entity.polygon.hierarchy.getValue().positions.forEach((position, index) => {
-                        positionList.push({
-                            entity,
-                            position,
-                            index
-                        });
-                    })
-                }
+                this.reloadTypeIsSixPoint(entity);
             });
-            positionList.map(info => {
-                this.geometry.addMarker({
-                    position: info.position,
-                    hasMove: true,
-                    id: info.entity.id + '@' + info.index,
-                    label: this.utils.cartesian3ToDegree2(info.position, 1).toString(),
-                    description: 'typeIsSixPoint'
-                }, 'defaultDraw')
+        }
+    }
+
+    /**
+     * 当设置的type为6时，在线和面的拐点上标记出可拖拽的白点以修改线和面的位置
+     * @param entity
+     */
+    reloadTypeIsSixPoint(entity) {
+        // 先删除以这个entity为基准的全部的点
+        let entities = this._viewer.dataSources.getByName('defaultDraw')[0]?.entities;
+        let removePointList = entities.values.filter(item => item.id.startsWith(entity.id));
+        removePointList.forEach(point => {
+            entities.removeById(point.id)
+        })
+        let positionList = [];
+        if (Cesium.defined(entity.polyline)) {
+            entity.polyline.positions.getValue().forEach((position, index) => {
+                positionList.push({
+                    entity,
+                    position,
+                    index
+                });
+            });
+        }
+        if (Cesium.defined(entity.polygon)) {
+            entity.polygon.hierarchy.getValue().positions.forEach((position, index) => {
+                positionList.push({
+                    entity,
+                    position,
+                    index
+                });
             })
         }
+
+        // 错开删除和添加事件，免得删除的时候把添加的点一起删除了
+        setTimeout(() => {
+                positionList.map(info => {
+                    this.geometry.addMarker({
+                        position: info.position,
+                        hasMove: true,
+                        id: info.entity.id + '@' + info.index,
+                        label: this.utils.cartesian3ToDegree2(info.position, 1).toString(),
+                        description: 'typeIsSixPoint'
+                    }, 'defaultDraw')
+                });
+            }, 1
+        )
     }
 
     /**
@@ -354,10 +373,22 @@ export default class CesiumEvent {
             // 如果是修改 则移动点
             else if (that._type == 6) {
                 let pickPoint = that._viewer.scene.pick(evt.startPosition)?.id;
+                // 悬浮上去后询问添加点或删除点
+                if (pickPoint && Cesium.defined(pickPoint.point) && pickPoint.description?.getValue() == "typeIsSixPoint") {
+
+                }
+
+                // 鼠标长按并拖拽的操作点
                 if (handlePoint == null && pickPoint && Cesium.defined(pickPoint.point) && pickPoint.description?.getValue() == "typeIsSixPoint" && handleLeftDown) {
                     handlePoint = pickPoint;
                 }
-                if (!handleLeftDown) {
+
+                // 拖拽操作
+                if (!handleLeftDown && Cesium.defined(handlePoint)) {
+                    that.trigger("changePoint", {
+                        handlePoint: handlePoint,
+                        entity: that.geometry.getEntityById(pickPoint.id.split('@')[0])
+                    });
                     handlePoint = null;
                     that.utils.unlockCamera()
                 }

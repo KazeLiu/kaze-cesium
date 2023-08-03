@@ -94,6 +94,10 @@ const demo = () => {
     func.clg('entity', entity)
   })
 
+  cesium.on('changePoint', (data) => {
+    func.clg('data', data)
+  })
+
   // 添加一个点
   let marker = cesium.addMarker({
     iconImage: `/public/logo.jpg`,

@@ -105,7 +105,7 @@ export default class CesiumGeometry {
     /**
      * 根据条件查找entity
      */
-    findEntitiesByCondition(condition) {
+    getEntitiesByCondition(condition) {
         const foundEntities = [];
         const allEntity = this.getAllEntity();
         allEntity.forEach((entity) => {
@@ -117,7 +117,7 @@ export default class CesiumGeometry {
     };
 
     getEntityById(id) {
-        let find = this.findEntitiesByCondition((entity) => entity.id === id);
+        let find = this.getEntitiesByCondition((entity) => entity.id === id);
         if (find && find.length > 0) {
             return find[0]
         } else {
@@ -176,6 +176,7 @@ export default class CesiumGeometry {
             let tempEntityList = [];
             info.attachImage.forEach(attachImage => {
                 let tempEntity = new Cesium.Entity({
+                    parent:entity,
                     id: this.utils.generateUUID(),
                     billboard: new Cesium.BillboardGraphics({
                         image: attachImage.url,
