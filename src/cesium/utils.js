@@ -108,13 +108,13 @@ export default class CesiumUtils {
         const altitude = cartographic.height;
         if (type == 0) {
             return {
-                longitude,
-                latitude,
-                altitude
+                longitude: longitude.toFixed(6),
+                latitude: latitude.toFixed(6),
+                altitude: altitude.toFixed(6)
             };
         }
         if (type == 1) {
-            return [longitude, latitude]
+            return [longitude.toFixed(6), latitude.toFixed(6)]
         }
     }
 

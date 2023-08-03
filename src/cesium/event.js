@@ -64,12 +64,34 @@ export default class CesiumEvent {
         this._eventHandlers[eventName].forEach(handler => handler.apply(this, args));
     }
 
+    /**
+     * 切换操作类型
+     * @param type 0:获取点，1:画点，2:画线，3:画面，4:面掏洞，5：移动图标，6:修改图形（线，面）
+     * @param showDistance
+     */
     changeMouseEventType(type, showDistance = true) {
         this._showDistance = showDistance
         this._type = type
         // 如果设置为6  查找地球上全部的entity，然后每个拐点放一个图标 允许拖拽
         if (this._type == 6) {
-            debugger
+            let allEntity = this.geometry.getAllEntity();
+            allEntity.forEach(entity => {
+                if (Cesium.defined(entity.polyline)) {
+                    // entity.polyline
+                }
+                if (Cesium.defined(entity.polygon)) {
+                    let positionList = entity.polygon.hierarchy.getValue().positions;
+                    positionList.map((x, index) => {
+                        this.geometry.addMarker({
+                            position: x,
+                            hasMove: true,
+                            id: entity.id + '@' + index,
+                            label: this.utils.cartesian3ToDegree2(x, 1).toString(),
+                            description: 'typeIsSixPoint'
+                        }, 'defaultDraw')
+                    })
+                }
+            });
         }
     }
 
@@ -97,7 +119,7 @@ export default class CesiumEvent {
 
         /**
          * 停止画线面
-         * @param saveEntity 是否保存实体 不保存实体约等于取消这次画图
+         * @param saveEntity 是否保存实体 不保存实体约等于取消这次画图 修改（_type == 6）不会走这个方法
          */
         function stopDrawing(saveEntity) {
             // 右键后返回的值 通过修改entity来调整实体的样式和数据
@@ -262,6 +284,8 @@ export default class CesiumEvent {
             }
         }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
 
+        // _type == 6 的时候使用，移动的时候因为时实时获取鼠标选中的图形，通过这个参数，在鼠标按下时获取当前点，然后一直操作这个点，直到鼠标松开
+        let handlePoint = null;
         // 移动
         handler.setInputAction(evt => {
             const pick = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.endPosition), viewer.scene);
@@ -312,7 +336,42 @@ export default class CesiumEvent {
                 }
             } else if (that._type == 5 && Cesium.defined(drewEntity)) {
                 drewEntity.position.setValue(pick);
-                that.trigger('entityMove', {newLocation: that.utils.cartesian3ToDegree2(pick)})
+                that.trigger('entityMove', {entity: drewEntity, location: that.utils.cartesian3ToDegree2(pick)})
+            }
+            // 如果是修改 则移动点
+            else if (that._type == 6) {
+                let pickPoint = that._viewer.scene.pick(evt.startPosition)?.id;
+                if (handlePoint == null && pickPoint && Cesium.defined(pickPoint.point) && pickPoint.description?.getValue() == "typeIsSixPoint" && handleLeftDown) {
+                    handlePoint = pickPoint;
+                }
+                if (!handleLeftDown) {
+                    handlePoint = null;
+                    that.utils.unlockCamera()
+                }
+                if (Cesium.defined(handlePoint)) {
+                    that.utils.lockCamera()
+                    handlePoint.position.setValue(pick);
+                    handlePoint.label.text.setValue(that.utils.cartesian3ToDegree2(pick, 1).toString());
+                    /**
+                     * 通过id找到它对应的图形的点 id生成方法查看 changeMouseEventType 中 if(_type == 6)的情况
+                     * @see changeMouseEventType
+                     */
+                    let parentId = handlePoint.id.split('@')[0];
+                    let entity = that.geometry.getEntityById(parentId);
+                    if (Cesium.defined(entity.polygon)) {
+                        // 使用Entity.change方法更新属性
+                        entity.polygon.hierarchy = new Cesium.PolygonHierarchy(
+                            entity.polygon.hierarchy.getValue().positions.map(function (position, index) {
+                                if (index === parseInt(handlePoint.id.split('@')[1])) {
+                                    return pick;
+                                } else {
+                                    return position;
+                                }
+                            }),
+                            entity.polygon.hierarchy.getValue().holes
+                        );
+                    }
+                }
             }
             // 切换到非画图时，走一次删除，把没花完的全部清除
             else if (that._type == 0 && Cesium.defined(activeEntity)) {

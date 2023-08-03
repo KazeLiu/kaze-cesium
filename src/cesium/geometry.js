@@ -89,22 +89,28 @@ export default class CesiumGeometry {
         }
     }
 
+
+    /**
+     * 获取全部的entity
+     */
+    getAllEntity() {
+        let allEntity = [];
+        const dataSources = this.viewer.dataSources;
+        for (let i = 0; i < dataSources.length; i++) {
+            allEntity.push(...dataSources.get(i).entities.values)
+        }
+        return allEntity;
+    }
+
     /**
      * 根据条件查找entity
      */
     findEntitiesByCondition(condition) {
         const foundEntities = [];
-        const dataSources = this.viewer.dataSources;
-        dataSources._dataSources.forEach((dataSource) => {
-            if (dataSource.entities) {
-                dataSource.entities.values.forEach((entity) => {
-                    if (condition(entity)) {
-                        foundEntities.push({
-                            dataSource,
-                            entity
-                        });
-                    }
-                });
+        const allEntity = this.getAllEntity();
+        allEntity.forEach((entity) => {
+            if (condition(entity)) {
+                foundEntities.push(entity);
             }
         });
         return foundEntities;
@@ -118,6 +124,7 @@ export default class CesiumGeometry {
             return null
         }
     }
+
 
     /**
      * 添加点
@@ -134,9 +141,6 @@ export default class CesiumGeometry {
             hasMove: false,
             hasLabel: true,
             labelOption: {},
-            point: {
-                show: false
-            }
         }, marker);
 
         let entity = new Cesium.Entity({
@@ -144,10 +148,10 @@ export default class CesiumGeometry {
             id: info.id,
             name: info.name,
             position: this.utils.convertToCartesian3(info.position),
-            point: info.point,
             description: info.description,
             hasMove: info.hasMove,
-            hasLabel: info.hasLabel
+            hasLabel: info.hasLabel,
+            label: info.label
         });
         if (info.iconImage) {
             entity.billboard = new Cesium.BillboardGraphics({
@@ -157,14 +161,14 @@ export default class CesiumGeometry {
                 heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
             })
         } else {
-            entity.point = new Cesium.PointGraphics({
+            entity.point = new Cesium.PointGraphics(Object.assign({
                 color: Cesium.Color.WHITE,
                 pixelSize: 20,
                 heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-            })
+            }, info.point))
         }
         if (info.hasLabel) {
-            this.markerAddLabel(entity, info.name, info.labelOption)
+            this.markerAddLabel(entity, info.label ?? info.name, info.labelOption)
         }
 
         // 附加的entity
