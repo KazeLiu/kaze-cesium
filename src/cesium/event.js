@@ -72,26 +72,39 @@ export default class CesiumEvent {
     changeMouseEventType(type, showDistance = true) {
         this._showDistance = showDistance
         this._type = type
-        // 如果设置为6  查找地球上全部的entity，然后每个拐点放一个图标 允许拖拽
+        // 如果设置为6  查找地球上全部的线和面，然后每个拐点放一个图标 允许拖拽
         if (this._type == 6) {
             let allEntity = this.geometry.getAllEntity();
+            let positionList = [];
             allEntity.forEach(entity => {
                 if (Cesium.defined(entity.polyline)) {
-                    // entity.polyline
+                    entity.polyline.positions.getValue().forEach((position, index) => {
+                        positionList.push({
+                            entity,
+                            position,
+                            index
+                        });
+                    });
                 }
                 if (Cesium.defined(entity.polygon)) {
-                    let positionList = entity.polygon.hierarchy.getValue().positions;
-                    positionList.map((x, index) => {
-                        this.geometry.addMarker({
-                            position: x,
-                            hasMove: true,
-                            id: entity.id + '@' + index,
-                            label: this.utils.cartesian3ToDegree2(x, 1).toString(),
-                            description: 'typeIsSixPoint'
-                        }, 'defaultDraw')
+                    entity.polygon.hierarchy.getValue().positions.forEach((position, index) => {
+                        positionList.push({
+                            entity,
+                            position,
+                            index
+                        });
                     })
                 }
             });
+            positionList.map(info => {
+                this.geometry.addMarker({
+                    position: info.position,
+                    hasMove: true,
+                    id: info.entity.id + '@' + info.index,
+                    label: this.utils.cartesian3ToDegree2(info.position, 1).toString(),
+                    description: 'typeIsSixPoint'
+                }, 'defaultDraw')
+            })
         }
     }
 
@@ -358,6 +371,11 @@ export default class CesiumEvent {
                      */
                     let parentId = handlePoint.id.split('@')[0];
                     let entity = that.geometry.getEntityById(parentId);
+                    if (Cesium.defined(entity.polyline)) {
+                        let pointList = entity.polyline.positions.getValue();
+                        pointList[parseInt(handlePoint.id.split('@')[1])] = pick;
+                        entity.polyline.positions = pointList;
+                    }
                     if (Cesium.defined(entity.polygon)) {
                         // 使用Entity.change方法更新属性
                         entity.polygon.hierarchy = new Cesium.PolygonHierarchy(

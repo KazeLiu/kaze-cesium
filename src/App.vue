@@ -146,6 +146,17 @@ const demo = () => {
   }
   cesium.addHeatMap({id: 999, points: heatMapPoint})
 
+  cesium.addLine({
+    positions: [
+      [114.0,
+        20.0],
+      [116.0,
+        20.0],
+      [129.0,
+        30.0],
+    ]
+  })
+
   cesium.addPolygon({
     positions: [
       [120.0,
