@@ -2,13 +2,14 @@ import * as Cesium from "cesium";
 import CesiumGeometry from "./geometry.js";
 import CesiumUtils from "./utils.js";
 import * as turf from "@turf/turf";
+import * as cesium from "cesium";
 
 
 // 事件监听的方法放这里
 export default class CesiumEvent {
     _eventHandlers = {};
     // type代表地图上动态操作的类型，使用changeMouseEventType改变
-    // null 默认 获取经纬度。其他类型会让左键点击获取entity失效 0:获取点，1:画点，2:画线，3:画面，4:面掏洞，5：移动图标
+    // null 默认 获取经纬度。其他类型会让左键点击获取entity失效 0:获取点，1:画点，2:画线，3:画面，4:面掏洞，5：移动图标，6:修改图形（线，面）
     _type = null;
     _showDistance = true; // 在线面的情况下  是否显示长度和周长与面积
     _viewer = null;
@@ -66,6 +67,10 @@ export default class CesiumEvent {
     changeMouseEventType(type, showDistance = true) {
         this._showDistance = showDistance
         this._type = type
+        // 如果设置为6  查找地球上全部的entity，然后每个拐点放一个图标 允许拖拽
+        if (this._type == 6) {
+            debugger
+        }
     }
 
     /**
@@ -307,6 +312,7 @@ export default class CesiumEvent {
                 }
             } else if (that._type == 5 && Cesium.defined(drewEntity)) {
                 drewEntity.position.setValue(pick);
+                that.trigger('entityMove', {newLocation: that.utils.cartesian3ToDegree2(pick)})
             }
             // 切换到非画图时，走一次删除，把没花完的全部清除
             else if (that._type == 0 && Cesium.defined(activeEntity)) {

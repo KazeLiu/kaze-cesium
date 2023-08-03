@@ -9,6 +9,7 @@
       <br/>
       <button @click="func.changeMouseEventType(0)">获取图标数据</button>
       <button @click="func.changeMouseEventType(5)">移动图标</button>
+      <button @click="func.changeMouseEventType(6)">修改图形</button>
       <hr/>
       获取cesium的时间轴起止时间
       <br/>
@@ -34,7 +35,6 @@ import * as Cesium from "cesium";
 
 const showBtn = ref(false);
 let cesium = null;
-
 onMounted(async () => {
   cesium = await new CesiumKaze().init('cesium-dom', {
     DEFAULT_VIEW_RECTANGLE: Cesium.Rectangle.fromDegrees(89.5, 20.4, 110.4, 61.2),
@@ -144,8 +144,18 @@ const demo = () => {
 
     heatMapPoint.push(entry);
   }
-  cesium.addHeatMap({id: 999, points: heatMapPoint, zoomToLayer: true})
+  cesium.addHeatMap({id: 999, points: heatMapPoint})
 
+  cesium.addPolygon({
+    positions: [
+      [120.0,
+        30.0],
+      [116.0,
+        30.0],
+      [127.0,
+        40.0],
+    ]
+  })
 
   // 添加掏洞的图
   cesium.addPolygon({

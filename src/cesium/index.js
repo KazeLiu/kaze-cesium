@@ -2,6 +2,7 @@ import CesiumInit from "./init.js";
 import CesiumUtils from "./utils.js";
 import CesiumGeometry from "./geometry.js";
 import CesiumEvent from "./event.js"
+import * as Cesium from "cesium";
 
 
 /**
@@ -10,6 +11,8 @@ import CesiumEvent from "./event.js"
  */
 
 export default class CesiumKaze {
+    static cesium = Cesium;
+
     async init(domId, option, isOffline) {
         let init = new CesiumInit(domId, option, isOffline);
         await init.init();
@@ -30,4 +33,5 @@ export default class CesiumKaze {
         });
         return mergedClass;
     }
+
 }
