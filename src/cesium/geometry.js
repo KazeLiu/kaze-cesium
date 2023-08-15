@@ -363,20 +363,30 @@ export default class CesiumGeometry {
      * 历史轨迹
      * @param marker
      * @param timeAndPosition [{time:'2023-01-01 12:00:00',position:[122.4882,23.9999]},{time:'2023-01-02 12:00:00',position:[126.1321,39.2452]}]
+     * @param hasLine 是否显示线条
      */
-    historyLine(marker, timeAndPosition) {
+    historyLine(marker, timeAndPosition, hasLine = true) {
         let positionProperty = new Cesium.SampledPositionProperty();
-        for (let i = 0; i < timeAndPosition.length; i++) {
-            positionProperty.addSample(Cesium.JulianDate.fromDate(new Date(timeAndPosition[i].time)),
-                this.utils.convertToCartesian3(timeAndPosition[i].position));
-        }
+        timeAndPosition.forEach(item => {
+            positionProperty.addSample(Cesium.JulianDate.fromDate(new Date(item.time)),
+                this.utils.convertToCartesian3(item.position));
+        })
         marker.position = positionProperty;
-        marker.polyline = new Cesium.PolylineGraphics({
-            material: this.utils.colorToCesiumRGB('#4B8BF4', 1),
-            width: 2,
-            clampToGround: true,
-            positions: timeAndPosition.map(x => this.utils.convertToCartesian3(x.position))
-        });
+        if (marker.model) {
+            marker.orientation = new Cesium.VelocityOrientationProperty(positionProperty);
+        }
+        if (marker.billboard) {
+            marker.billboard.alignedAxis = new Cesium.VelocityVectorProperty(positionProperty)
+        }
+
+        if (hasLine) {
+            marker.polyline = new Cesium.PolylineGraphics({
+                material: this.utils.colorToCesiumRGB('#4B8BF4', 1),
+                width: 2,
+                clampToGround: true,
+                positions: timeAndPosition.map(x => this.utils.convertToCartesian3(x.position))
+            });
+        }
         // 时间范围之外 不显示点和线  取消该代码也只能保持显示线不能显示点
         let availability = new Cesium.TimeIntervalCollection();
         availability.addInterval(
@@ -386,9 +396,6 @@ export default class CesiumGeometry {
             })
         );
         marker.availability = availability;
-
-        marker.orientation = new Cesium.VelocityOrientationProperty(positionProperty);
-
     }
 
     /**

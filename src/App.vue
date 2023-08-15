@@ -108,18 +108,8 @@ const demo = () => {
     scale: 0.20,
     hasMove: true,
     hasLabel: true,
-    position: [110, 29]
-  })
-
-  let marker2 = cesium.addMarker({
-    parent: marker,
-    iconImage: `/public/logo.jpg`,
-    id: '22222',
-    name: '原神2',
-    scale: 0.20,
-    hasMove: true,
-    hasLabel: true,
-    position: [116, 36]
+    position: [110, 29],
+    rotation: 0
   })
 
 
@@ -146,9 +136,9 @@ const demo = () => {
   //   })
   // }
 
-  setTimeout(() => {
-    cesium.removeEntity('111111', true)
-  }, 5000)
+  // setTimeout(() => {
+  //   cesium.removeEntity('111111', true)
+  // }, 5000)
 
   // cesium.removeEntity(999)
 
@@ -157,14 +147,17 @@ const demo = () => {
   // }, 5000)
 
   // 添加轨迹移动
-  // let line = [
-  //   {time: '2023-07-10 12:00:00', position: [74.1237, 33.4324]},
-  //   {time: '2023-07-12 12:00:00', position: [112.4882, 15.9999]},
-  //   {time: '2023-07-14 12:00:00', position: [126.1321, 39.2452]},
-  //   {time: '2023-07-16 12:00:00', position: [136.1237, 49.4324]},
-  // ];
-  // cesium.historyLine(marker, line);
-
+  let line = [
+    {time: '2023-08-10 12:00:00', position: [74.1237, 33.4324]},
+    {time: '2023-08-12 12:00:00', position: [112.4882, 15.9999]},
+    {time: '2023-08-14 12:00:00', position: [126.1321, 39.2452]},
+    {time: '2023-08-16 12:00:00', position: [136.1237, 49.4324]},
+  ];
+  cesium.historyLine(marker, line);
+  cesium.setClockController({
+    startTime: '2023-08-10 12:00:00',
+    stopTime: '2023-08-16 12:00:00'
+  })
   // 添加热力图
   let heatMapPoint = [];
   for (let i = 0; i < 500; i++) {
