@@ -238,8 +238,6 @@ export default class CesiumUtils {
      * 返回屏幕可视经纬度
      * @returns {{southwest: {lng: number, lat: number}, northeast: {lng: number, lat: number}}}
      */
-
-
     getBounds() {
         let viewer = this.viewer;
         let rectangle = viewer.camera.computeViewRectangle();
@@ -359,6 +357,27 @@ export default class CesiumUtils {
     }
 
     /**
+     * 从指定的地理坐标范围飞行至相机视角。
+     *
+     * @param {number} west - 范围的西经度。
+     * @param {number} south - 范围的南纬度。
+     * @param {number} east - 范围的东经度。
+     * @param {number} north - 范围的北纬度。
+     * @param {number} [height=50000] - 飞行的高度（可选，默认为 50000）。
+     * @returns {void}
+     * @throws {Error} 如果参数无效或飞行操作失败，将抛出错误。
+     * @example
+     * cameraFlyFromDegrees(10, 20, 30, 40); // 从 (10, 20) 到 (30, 40) 的地理范围飞行至相机视角。
+     */
+    cameraFlyFromDegrees(west, south, east, north, height = 50000) {
+        let viewer = this.viewer;
+        viewer.camera.flyTo({
+            duration: 1,
+            destination: Cesium.Cartesian3.fromDegrees(west, south, east, north)
+        })
+    }
+
+    /**
      * 世界坐标转屏幕坐标
      * @param scene
      * @param cartesian3
@@ -366,6 +385,5 @@ export default class CesiumUtils {
      */
     wgs84ToWindowCoordinates(scene, cartesian3) {
         return Cesium.SceneTransforms.wgs84ToWindowCoordinates(scene, cartesian3);
-
     }
 }

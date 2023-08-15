@@ -182,11 +182,28 @@ onMounted(async () => {
 
 以下是本组件的配置，也写在option里面自行覆盖
 
-| 参数                     | 解释                                                | 默认值  | 值举例                                                                      |
-|------------------------|---------------------------------------------------|------|--------------------------------------------------------------------------|
-| DEFAULT_VIEW_RECTANGLE | 它是初始化地球后摄像机的位置，说人话就是一开始地球展示的面的四个角的经纬度             | null | Cesium.Rectangle.fromDegrees(89.5, 20.4, 110.4, 61.2)                    |
-| IMAGERY_PROVIDER       | 图层，在初始化时，如果isOffline为true，则必填                     | null | [new Cesium.UrlTemplateImageryProvider({ url: '/map/{z}/{x}/{y}.jpg' })] |
-| DATA_SOURCE_LIST       | 集合名称，用于批量显示隐藏(暂时只有这么多功能,后续添加删除等)，将添加的图形添加到集合内批量控制 | null | ['aa']                                                                   |
+| 参数                        | 解释                                                | 默认值  | 值举例                                                                      |
+|---------------------------|---------------------------------------------------|------|--------------------------------------------------------------------------|
+| DEFAULT_VIEW_RECTANGLE    | 它是初始化地球后摄像机的位置，说人话就是一开始地球展示的面的四个角的经纬度             | null | Cesium.Rectangle.fromDegrees(89.5, 20.4, 110.4, 61.2)                    |
+| IMAGERY_PROVIDER          | 图层，在初始化时，如果isOffline为true，则必填                     | null | [new Cesium.UrlTemplateImageryProvider({ url: '/map/{z}/{x}/{y}.jpg' })] |
+| DATA_SOURCE_LIST          | 集合名称，用于批量显示隐藏(暂时只有这么多功能,后续添加删除等)，将添加的图形添加到集合内批量控制 | null | ['aa']                                                                   |
+| IMAGERY_PROVIDER_ONE_PICK | 图片，可以放一张图片到地球上                                    | null | 见下                                                                       |
+
+IMAGERY_PROVIDER_ONE_PICK 举例
+
+不知道图片会有多大时的写法，参看[demo](https://sandcastle.cesium.com/?src=Imagery%20Layers%20Manipulation.html)中添加	Single Image 的方法
+
+以下写法是确认知道图片大小的方式，必须填写`tileWidth`和`tileHeight`，不然会报错。不填写`rectangle`会将图片铺满全球
+```js
+let imageryProvider = new cesium.SingleTileImageryProvider({
+    tileWidth:1920,
+    tileHeight:1080,
+    url:'xxx',
+    rectangle:cesium.Rectangle.fromDegrees(0,0,0,0)
+})
+let layer = new cesium.ImageryLayer(imageryProvider);
+IMAGERY_PROVIDER_ONE_PICK = [layer]
+```
 
 ### 事件监听API
 

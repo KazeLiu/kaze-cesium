@@ -4,11 +4,31 @@ export default class CesiumInit {
     viewer = null;
     dataSourceList = [];
     _debug = false;
+
     /**
-     * 初始化
-     * @param domId id
-     * @param option 设置项
-     * @param isOffline 是否为离线运行 如果是离线运行 需要在option添加配置项 IMAGERY_PROVIDER:[]
+     * 创建一个新的 CesiumKaze 实例并初始化地球视图。
+     *
+     * @param {string} domId - 地球视图容器的 DOM 元素的 ID。
+     * @param {Object} option - 初始化选项。
+     * @param {boolean} [isOffline=false] - 是否离线模式。如果为 true，则不使用在线地形数据，默认为 false。
+     * @param {boolean} [isDebugger=false] - 是否为调试器模式。如果为 true，则启用调试模式，以便进行调试操作，默认为 false。
+     *
+     * @property {Cesium.Rectangle} [DEFAULT_VIEW_RECTANGLE] - 地球视图的默认视角矩形。格式为 Cesium.Rectangle.fromDegrees(west, south, east, north)。
+     * @property {Array} [DATA_SOURCE_LIST] - 初始数据源列表，用于添加不同类型的地理数据。
+     * @property {Array<Cesium.ImageryProvider>} [IMAGERY_PROVIDER] - 影像图层提供者列表，用于叠加不同图层作为底图。
+     * @property {Array<Cesium.ImageryLayer>} [IMAGERY_PROVIDER_ONE_PICK] - 单独添加的影像图层列表，可以在初始化时添加单一影像图层。
+     *
+     * @throws {Error} 如果初始化过程中出现错误，将抛出错误。
+     * @example
+     * // 创建一个新的 CesiumKaze 实例并初始化地球视图。
+     * const cesiumInstance = new CesiumKaze('cesiumContainer', {
+     *     isOffline: true,
+     *     isDebugger: false,
+     *     DEFAULT_VIEW_RECTANGLE: Cesium.Rectangle.fromDegrees(89.5, 20.4, 110.4, 61.2),
+     *     DATA_SOURCE_LIST: [], // 数据源列表
+     *     IMAGERY_PROVIDER: [], // 影像图层提供者列表
+     *     IMAGERY_PROVIDER_ONEPICK: [], // 单独添加的图层列表
+     * });
      */
     constructor(domId, option, isOffline, isDebugger) {
         // 是否为debugger模式
@@ -46,6 +66,9 @@ export default class CesiumInit {
         //     ]
         if (option.IMAGERY_PROVIDER) {
             option.IMAGERY_PROVIDER.forEach(item => this.viewer.imageryLayers.addImageryProvider(item));
+        }
+        if (option.IMAGERY_PROVIDER_ONE_PICK) {
+            option.IMAGERY_PROVIDER_ONE_PICK.forEach(item => this.viewer.imageryLayers.add(item));
         }
     }
 
