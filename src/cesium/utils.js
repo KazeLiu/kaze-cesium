@@ -201,10 +201,11 @@ export default class CesiumUtils {
      * @param {Number} option.multiplier - 时间流逝速度
      * @param {string} option.startTime - 时间轴开始时间
      * @param {string} option.stopTime - 结束时间
-     * @returns {Cesium.Clock} - 更新后的时钟对象
+     * @returns {Cesium.Clock} - 更新后的时钟对象 时间轴也会修改为时间起止点
      */
     setClockController(option) {
         let clock = this.viewer.clock;
+        let timeline = this.viewer.timeline;
         if (option.shouldAnimate) {
             clock.shouldAnimate = option.shouldAnimate;
         }
@@ -221,6 +222,7 @@ export default class CesiumUtils {
         if (option.stopTime) {
             clock.stopTime = Cesium.JulianDate.fromDate(new Date(option.stopTime));
         }
+        timeline.zoomTo(clock.startTime,clock.stopTime)
         return clock;
     }
 
@@ -349,8 +351,7 @@ export default class CesiumUtils {
      * @param height 高度 默认50000
      */
     cameraFly(lng, lat, height = 50000) {
-        let viewer = this.viewer;
-        viewer.camera.flyTo({
+        this.viewer.camera.flyTo({
             duration: 1,
             destination: Cesium.Cartesian3.fromDegrees(lng, lat, height)
         })
@@ -370,11 +371,18 @@ export default class CesiumUtils {
      * cameraFlyFromDegrees(10, 20, 30, 40); // 从 (10, 20) 到 (30, 40) 的地理范围飞行至相机视角。
      */
     cameraFlyFromDegrees(west, south, east, north, height = 50000) {
-        let viewer = this.viewer;
-        viewer.camera.flyTo({
+        this.viewer.camera.flyTo({
             duration: 1,
-            destination: Cesium.Cartesian3.fromDegrees(west, south, east, north)
+            destination: Cesium.Rectangle.fromDegrees(west, south, east, north)
         })
+    }
+
+    /**
+     * 回到起始点
+     * @param duration 飞行时间 秒
+     */
+    cameraToHome(duration) {
+        this.viewer.camera.flyHome(duration)
     }
 
     /**

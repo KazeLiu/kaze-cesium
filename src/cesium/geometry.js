@@ -155,10 +155,28 @@ export default class CesiumGeometry {
 
 
     /**
-     * 添加点
-     * @param marker
-     * @param collectionName
-     * @returns {module:cesium.Entity}
+     * 向集合中添加一个点。
+     * @param {Object} marker - 标记的选项对象。
+     * @param {string} collectionName - 要添加标记的集合名称。
+     * @returns {Cesium.Entity} - 添加的实体对象。
+     * @typedef {Object} MarkerOptions
+     * @property {Cesium.Cartesian3} position - 标记的位置（世界坐标）。
+     * @property {string} [description] - 标记的描述信息。
+     * @property {boolean} [hasMove=false] - 标记是否可移动。
+     * @property {boolean} [hasLabel=true] - 是否显示标记标签。
+     * @property {Object} [labelOption] - 标签的选项对象，用于配置标签外观。
+     * @property {string} [iconImage] - 标记的图标图像。
+     * @property {Cesium.Entity} [parent] - 标记的父实体。
+     * @property {Array<Object>} [attachImage] - 附加的图像标记选项列表。
+     * @property {string} attachImage.url - 附加图像的URL。
+     * @property {number} [attachImage.scale=0.3] - 附加图像的缩放比例。
+     * @property {number} [attachImage.rotation=0] - 附加图像的旋转角度（弧度）。
+     * @property {Cesium.Cartesian2} [attachImage.pixelOffset] - 附加图像的像素偏移。
+     * @property {Object} [point] - 点标记的选项对象，用于配置点标记外观。
+     * @property {Cesium.Color} [point.color=Cesium.Color.WHITE] - 点标记的颜色。
+     * @property {number} [point.pixelSize=20] - 点标记的像素大小。
+     * @property {number} [point.rotation] - 点标记的旋转角度（弧度）。
+     * @property {number} [point.scale=0.1] - 点标记的缩放比例。
      */
     addMarker(marker = {}, collectionName) {
         const id = this.utils.generateUUID();
