@@ -7,11 +7,16 @@ import {CesiumHeatmap} from "cesium-heatmap-es6"
 export default class CesiumGeometry {
 
     _heatMapList = [];
+    _debug = false;
 
-    constructor(viewer) {
+    constructor(viewer, isDebugger) {
         this.utils = new CesiumUtils(viewer);
         this.viewer = viewer;
-
+        // 是否为debugger模式
+        this._debug = isDebugger;
+        if (isDebugger) {
+            debugger
+        }
     }
 
     /**
@@ -20,6 +25,7 @@ export default class CesiumGeometry {
      * @param entity 点
      */
     addEntityToCollection(entity, collectionName = 'defaultCollection') {
+        entity.collectionName = 'defaultCollection';
         let find = this.viewer.dataSources.getByName(collectionName)
         if (find && find.length > 0) {
             find[0].entities.add(entity);
@@ -41,15 +47,16 @@ export default class CesiumGeometry {
     }
 
     /**
-     * ⚠，尚未完善，请勿使用：隐藏带有附属性质的点是无法删除附属点
-     * 比如addMarker中添加{attachImage: []} 就无法删除这个附属点
      * 按组别批量删除entity（按组名称）
      * @param collectionName 组名
      */
     removeCollection(collectionName) {
         let list = this.viewer.dataSources.getByName(collectionName)
         if (list && list.length > 0) {
-            list[0].entities.removeAll();
+            // list[0].entities.removeAll();
+            list[0].entities.values.forEach(item => {
+                this.removeEntity(item.id, true)
+            })
         }
     }
 
@@ -63,22 +70,38 @@ export default class CesiumGeometry {
         this._heatMapList = [];
     }
 
-    // 删除实体对象
-    removeEntity(id) {
-        // 删除普通点
+    /**
+     * 删除实体对象
+     * @param id 删除的对象
+     * @param removeChild 是否同时删除子集
+     */
+    removeEntity(id, removeChild = false) {
         let mainEntity = this.getEntityById(id);
-        if (Cesium.defined(mainEntity)) {
-            mainEntity.dataSource.entities.remove(mainEntity.entity);
-        }
+        let _this = this;
         // 删除附属
         let defaultPrimitives = this.viewer.dataSources.getByName('defaultPrimitives')[0]
         let entities = defaultPrimitives.entities.values
-
         // 倒序遍历实体并安全删除满足条件的实体
         for (let entity of entities.slice().reverse()) {
             if (entity.description.getValue().searchId == id) {
                 defaultPrimitives.entities.remove(entity);
             }
+        }
+
+        // 如果需要查找手动添加的附属（在add的时候添加过parent且parent的值等于mainEntity）
+        if (removeChild) {
+            this.getEntitiesByCondition((entity) => {
+                if (entity.parent === mainEntity) {
+                    _this.removeEntity(entity.id, true)
+                }
+            })
+        }
+
+
+        // 删除普通点
+        if (Cesium.defined(mainEntity)) {
+            let defaultDataSources = this.viewer.dataSources.getByName(mainEntity.collectionName)[0]
+            defaultDataSources.entities.remove(mainEntity);
         }
 
         // 删除热力图
@@ -116,6 +139,11 @@ export default class CesiumGeometry {
         return foundEntities;
     };
 
+    /**
+     * 根据ID查找entity
+     * @param id
+     * @returns {*|null}
+     */
     getEntityById(id) {
         let find = this.getEntitiesByCondition((entity) => entity.id === id);
         if (find && find.length > 0) {
@@ -136,7 +164,7 @@ export default class CesiumGeometry {
         const id = this.utils.generateUUID();
         let info = Object.assign({
             scale: 0.1,
-            id: id,
+            id,
             name: id,
             hasMove: false,
             hasLabel: true,
@@ -151,7 +179,8 @@ export default class CesiumGeometry {
             description: info.description,
             hasMove: info.hasMove,
             hasLabel: info.hasLabel,
-            label: info.label
+            label: info.label,
+            parent: info.parent
         });
         if (info.iconImage) {
             entity.billboard = new Cesium.BillboardGraphics({
@@ -176,7 +205,7 @@ export default class CesiumGeometry {
             let tempEntityList = [];
             info.attachImage.forEach(attachImage => {
                 let tempEntity = new Cesium.Entity({
-                    parent:entity,
+                    parent: entity,
                     id: this.utils.generateUUID(),
                     billboard: new Cesium.BillboardGraphics({
                         image: attachImage.url,
@@ -228,13 +257,14 @@ export default class CesiumGeometry {
         let info = Object.assign({
             name: id,
             text: id,
-            id: id,
+            id,
             material: this.utils.colorToCesiumRGB('#23ADE5', 0.7),
         }, polyline);
 
         let line = new Cesium.Entity({
             id: info.id,
             name: info.name,
+            parent: info.parent,
             polyline: {
                 clampToGround: true,
                 positions: this.utils.convertToCartesian3(info.positions),
@@ -256,13 +286,14 @@ export default class CesiumGeometry {
         let info = Object.assign({
             name: id,
             text: id,
-            id: id,
+            id,
             material: this.utils.colorToCesiumRGB('#23ADE5', 0.7),
         }, polyline);
 
         let polygon = new Cesium.Entity({
             id: info.id,
             name: info.name,
+            parent: info.parent,
             polygon: {
                 clampToGround: true,
                 hierarchy: new Cesium.PolygonHierarchy(this.utils.convertToCartesian3(info.positions)),
@@ -279,6 +310,35 @@ export default class CesiumGeometry {
         }
         this.addEntityToCollection(polygon, collectionName)
         return polygon
+    }
+
+    addEllipsoid(ellipsoid = {}, collectionName) {
+        const id = this.utils.generateUUID();
+        let info = Object.assign({
+            // 半径参考 https://zh.wikipedia.org/wiki/%E6%A4%AD%E7%90%83
+            radii: [200000, 200000, 100000],
+            material: this.utils.colorToCesiumRGB('#23ADE5', 0.3),
+            outlineColor: this.utils.colorToCesiumRGB('#23ADE5', 1)
+        }, ellipsoid);
+        if (!info.position) {
+            console.error('传入的值内没有坐标点（position为空）')
+            return
+        }
+        let earthEllipsoid = new Cesium.Entity({
+            name: info.name ?? id,
+            id,
+            parent: info.parent,
+            position: Cesium.Cartesian3.fromDegrees(...info.position),
+            ellipsoid: {
+                radii: new Cesium.Cartesian3(...info.radii),
+                maximumCone: Cesium.Math.PI_OVER_TWO,
+                material: info.material,
+                outlineColor: info.outlineColor,
+                outline: true,
+            }
+        });
+        this.addEntityToCollection(earthEllipsoid, collectionName)
+        return earthEllipsoid
     }
 
     /**
@@ -341,5 +401,17 @@ export default class CesiumGeometry {
             cesiumHeatmap
         });
         return cesiumHeatmap
+    }
+
+
+    /**
+     * 给entity设置它的父级entity，如果entity原来有，则替换
+     * @param entity
+     * @param parentEntity
+     */
+    giveEntityToParent(entity, parentEntity) {
+        if (Cesium.defined(entity) && Cesium.defined(parentEntity)) {
+            entity.parent = parentEntity;
+        }
     }
 }

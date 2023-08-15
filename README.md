@@ -145,6 +145,8 @@ onMounted(async () => {
 })
 ```
 
+在CesiumKaze()中，会返回cesium的静态对象，使用``CesiumKaze.cesium``获取，供外部调用一些cesium的静态方法
+
 ## API 文档
 
 ### 初始化API
@@ -211,6 +213,17 @@ onMounted(async () => {
     - `info` 返回被选中的图形(info.entity)和经纬度海拔(info.position)和屏幕坐标(info.windowCoordinates)
 - `cameraMove`：视角移动事件，当摄像机高度改变和转动地球的时候触发
     - `info` 返回摄像机中心点的经纬度海拔和摄像机高度
+- `entityMove`：点图形移动事件，鼠标拖拽图形后触发
+    - `entity` 返回被移动的图形本身
+    - `location` 移动后的经纬度
+- `changePoint`：修改线，面的图形时，拖拽拐点后触发。可以配合`getBounds()`获取屏幕可视范围边界的经纬度
+    - `handlePoint` 当前拐点本身
+    - `entity` 被修改的线面本身
+- `cameraMove`：摄像机移动后触发，在拖动地球或者缩放视角时触发。
+    - `location` 摄像机中心点
+    - `cameraHeight` 摄像机高度
+- `northAngle`：监听真北指向角度
+    - `northAngle` 数字，与真北的偏向角
 
 #### CesiumKaze.off(event)
 
@@ -228,17 +241,18 @@ onMounted(async () => {
 
 参数 `options` 是一个对象，包含以下属性：
 
-| 参数          | 是否必填 | 默认值                           | 描述                              |
-|-------------|------|-------------------------------|---------------------------------|
-| iconImage   | 必填   |                               | 图标的图片路径                         |
-| position    | 必填   |                               | 标记点的位置，经纬度数组，例如`[112.45,45.29]` |
-| id          |      | `utils.generateUUID()`返回的随机id | 标记的id，全局唯一                      |
-| name        |      | `id`的值                        | 标记点的名称，默认等于标记点的id               |
-| scale       |      | `0.1`                         | 图标的缩放比例                         |
-| point       |      | {show: false}                 | 对象，为一个点，没有大小，视觉上是一个白色的像素点       |
-| hasLabel    |      | true                          | 组件自定义属性，是否显示`name`，显示的位置在图标下方   |
-| hasMove     |      | false                         | 组件自定义属性，图标能否被拖动                 |
-| attachImage |      | []                            | 组件自定义属性，填入附加值                   |
+| 参数          | 是否必填 | 默认值                           | 描述                                            |
+|-------------|------|-------------------------------|-----------------------------------------------|
+| iconImage   | 必填   |                               | 图标的图片路径                                       |
+| position    | 必填   |                               | 标记点的位置，经纬度数组，例如`[112.45,45.29]`               |
+| id          |      | `utils.generateUUID()`返回的随机id | 标记的id，全局唯一                                    |
+| name        |      | `id`的值                        | 标记点的名称，默认等于标记点的id                             |
+| scale       |      | `0.1`                         | 图标的缩放比例                                       |
+| point       |      | {show: false}                 | 对象，为一个点，没有大小，视觉上是一个白色的像素点                     |
+| hasLabel    |      | true                          | 组件自定义属性，是否显示`name`，显示的位置在图标下方                 |
+| hasMove     |      | false                         | 组件自定义属性，图标能否被拖动                               |
+| attachImage |      | []                            | 组件自定义属性，填入附加值                                 |
+| parent      |      |                               | 指定父级的entity，在删除entity时如果parent和entity对应则会一起删除 |
 
 `attachImage`是附属值，比如一个entity添加一个图形的billboard后，还需要其他的图片，那么就用这个。
 它的是一个对象数组,里面的全部参数如下
@@ -280,6 +294,7 @@ cesium.addMarker({
 | id        |      | `utils.generateUUID()`返回的随机id            | 线的id，全局唯一                                       |
 | positions | 必填   |                                          | 线的位置，经纬度数组，例如`[[112.45,45.29], [112.50,45.32]]` |
 | material  |      | `utils.colorToCesiumRGB('#23ADE5', 0.7)` | 线的材质，颜色和透明度                                     |
+| parent    |      |                                          | 指定父级的entity，在删除entity时如果parent和entity对应则会一起删除   |
 
 其他官方属性请查看 [中文文档](http://cesium.xin/cesium/en/Documentation1.95/Polyline.html)
 或 [英文文档](https://cesium.com/learn/cesiumjs/ref-doc/Polyline.html)
@@ -301,6 +316,7 @@ cesium.addMarker({
 | id        |      | `utils.generateUUID()`返回的随机id            | 面的id，全局唯一                                                       |
 | positions | 必填   |                                          | 面的位置，经纬度数组，例如`[[112.45,45.29], [112.50,45.32], [112.60,45.35]]` |
 | material  |      | `utils.colorToCesiumRGB('#23ADE5', 0.7)` | 面的材质，颜色和透明度                                                     |
+| parent    |      |                                          | 指定父级的entity，在删除entity时如果parent和entity对应则会一起删除                   |
 
 其他官方属性请查看 [中文文档](http://cesium.xin/cesium/en/Documentation1.95/PolygonGraphics.html)
 或 [英文文档](https://cesium.com/learn/cesiumjs/ref-doc/PolygonGraphics.html)
@@ -326,6 +342,29 @@ cesium.addPolygon(
         }]
     })
 ```
+
+---
+
+#### CesiumKaze.addEllipsoid(ellipsoid = {}, collectionName)
+
+添加一个半球罩，返回添加的半球罩的实体对象。
+
+参数 `ellipsoid` 是一个对象，组件添加的默认值包含以下属性：
+
+| 参数           | 是否必填 | 默认值                                    | 描述                                                                                    |
+|--------------|------|----------------------------------------|---------------------------------------------------------------------------------------|
+| name         |      | `id`的值                                 | 线的名称，默认等于标记点的id                                                                       |
+| id           |      | `utils.generateUUID()`返回的随机id          | 线的id，全局唯一                                                                             |
+| position     | 必填   |                                        | 线的位置，经纬度数组，例如`[[112.45,45.29], [112.50,45.32]]`                                       |
+| radii        |      | [200000, 200000, 100000]               | 球面的数据，前两个为赤道半径x,y，后一个为极半径z。参考[维基百科](https://zh.wikipedia.org/wiki/%E6%A4%AD%E7%90%83) |
+| material     |      | utils.colorToCesiumRGB('#23ADE5', 0.3) | 球的材质                                                                                  |
+| outlineColor |      | utils.colorToCesiumRGB('#23ADE5', 0.3) | 球的经纬度线的材质                                                                             |
+| parent       |      |                                        | 指定父级的entity，在删除entity时如果parent和entity对应则会一起删除                                         |
+
+其他官方属性请查看 [中文文档](http://cesium.xin/cesium/en/Documentation1.95/Polyline.html)
+或 [英文文档](https://cesium.com/learn/cesiumjs/ref-doc/Polyline.html)
+
+参数 `collectionName` 是一个字符串，为添加到集合中，默认为`defaultCollection`，如何添加集合和查找集合在下面
 
 ---
 
@@ -432,8 +471,6 @@ CesiumKaze.addMarker({}, 'aa')
 
 #### CesiumKaze.removeCollection(collectionName)
 
-⚠，此方法尚未完善，如果实体带附属属性请勿使用：隐藏或显示带有附属性质的点是无法隐藏附属点
-
 按组别批量删除里面全部实体(建议二次确认)。
 
 参数 `collectionName` 是集合名称。
@@ -443,6 +480,12 @@ CesiumKaze.addMarker({}, 'aa')
 #### CesiumKaze.removeAllHeatMap()
 
 删除全部的热力图
+
+---
+
+#### CesiumKaze.giveEntityToParent(entity, parentEntity)
+
+给entity设置它的父级entity，如果entity原来有，则替换
 
 ### 工具类API
 

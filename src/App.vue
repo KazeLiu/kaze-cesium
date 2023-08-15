@@ -9,7 +9,9 @@
       <br/>
       <button @click="func.changeMouseEventType(0)">获取图标数据</button>
       <button @click="func.changeMouseEventType(5)">移动图标</button>
+      <br/>
       <button @click="func.changeMouseEventType(6)">修改图形</button>
+      <button @click="cesium.saveChangePolylineOrPolygon()">保存修改图形</button>
       <hr/>
       获取cesium的时间轴起止时间
       <br/>
@@ -35,6 +37,7 @@ import * as Cesium from "cesium";
 
 const showBtn = ref(false);
 let cesium = null;
+
 onMounted(async () => {
   cesium = await new CesiumKaze().init('cesium-dom', {
     DEFAULT_VIEW_RECTANGLE: Cesium.Rectangle.fromDegrees(89.5, 20.4, 110.4, 61.2),
@@ -98,27 +101,55 @@ const demo = () => {
     func.clg('data', data)
   })
 
-  // 添加一个点
   let marker = cesium.addMarker({
     iconImage: `/public/logo.jpg`,
-    id: 111,
-    attachImage: [{
-      url: `/public/logo2.jpg`,
-      pixelOffset: {x: 500, y: 250}
-    },
-      {
-        url: `/public/vite.svg`,
-        pixelOffset: {x: 50, y: 25}
-      }],
+    id: '111111',
     name: '原神',
     scale: 0.20,
     hasMove: true,
     hasLabel: true,
-    labelOption: {},
-    position: [112, 29]
+    position: [110, 29]
   })
 
-  cesium.removeEntity(999)
+  let marker2 = cesium.addMarker({
+    parent: marker,
+    iconImage: `/public/logo.jpg`,
+    id: '22222',
+    name: '原神2',
+    scale: 0.20,
+    hasMove: true,
+    hasLabel: true,
+    position: [116, 36]
+  })
+
+
+  // for (let i = 0; i < 100; i++) {
+  //   // 添加一个点
+  //   let marker = cesium.addMarker({
+  //     iconImage: `/public/logo.jpg`,
+  //     id: i,
+  //     attachImage: [{
+  //       url: `/public/logo2.jpg`,
+  //       pixelOffset: {x: 500, y: 250}
+  //     },
+  //       {
+  //         url: `/public/vite.svg`,
+  //         pixelOffset: {x: 50, y: 25}
+  //       }],
+  //     name: '原神',
+  //     scale: 0.20,
+  //     hasMove: true,
+  //     hasLabel: true,
+  //     labelOption: {},
+  //     position: [i, 29]
+  //   })
+  // }
+
+  setTimeout(() => {
+    cesium.removeEntity('111111', true)
+  }, 5000)
+
+  // cesium.removeEntity(999)
 
   // setTimeout(() => {
   //   cesium.removeEntity(marker.id)
@@ -149,6 +180,10 @@ const demo = () => {
     heatMapPoint.push(entry);
   }
   cesium.addHeatMap({id: 999, points: heatMapPoint})
+
+  cesium.addEllipsoid({
+    position: [56, 30]
+  })
 
   cesium.addLine({
     positions: [

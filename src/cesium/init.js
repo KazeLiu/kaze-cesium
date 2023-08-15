@@ -3,14 +3,16 @@ import * as Cesium from "cesium";
 export default class CesiumInit {
     viewer = null;
     dataSourceList = [];
-
+    _debug = false;
     /**
      * 初始化
      * @param domId id
      * @param option 设置项
      * @param isOffline 是否为离线运行 如果是离线运行 需要在option添加配置项 IMAGERY_PROVIDER:[]
      */
-    constructor(domId, option, isOffline) {
+    constructor(domId, option, isOffline, isDebugger) {
+        // 是否为debugger模式
+        this._debug = isDebugger;
         // 初始化时摄像机视角 在 new CesiumKaze().init 的option里面添加
         // DEFAULT_VIEW_RECTANGLE: Cesium.Rectangle.fromDegrees(89.5, 20.4, 110.4, 61.2),
         if (option.DEFAULT_VIEW_RECTANGLE) {

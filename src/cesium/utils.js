@@ -3,8 +3,12 @@ import * as Cesium from "cesium";
 import * as turf from "@turf/turf";
 
 export default class CesiumUtils {
-    constructor(viewer) {
+    _debug = false;
+
+    constructor(viewer, isDebugger) {
         this.viewer = viewer;
+        // 是否为debugger模式
+        this._debug = isDebugger;
     }
 
     /**
@@ -95,7 +99,8 @@ export default class CesiumUtils {
      *                 latitude,
      *                 altitude
      *             }
-     *      1:返回没有高度的数组 [longitude, latitude]
+     *      1:返回没有高度的数字数组 [longitude, latitude]
+     *      2:返回没有高度的六位字符数组 [longitude, latitude]
      */
     cartesian3ToDegree2(cartesian, type = 0) {
         if (!cartesian) {
@@ -108,12 +113,15 @@ export default class CesiumUtils {
         const altitude = cartographic.height;
         if (type == 0) {
             return {
-                longitude: longitude.toFixed(6),
-                latitude: latitude.toFixed(6),
-                altitude: altitude.toFixed(6)
+                longitude: longitude,
+                latitude: latitude,
+                altitude: altitude
             };
         }
         if (type == 1) {
+            return [longitude, latitude]
+        }
+        if (type == 2) {
             return [longitude.toFixed(6), latitude.toFixed(6)]
         }
     }
@@ -227,27 +235,74 @@ export default class CesiumUtils {
     }
 
     /**
-     * 在3D模式下返回屏幕可视经纬度
+     * 返回屏幕可视经纬度
      * @returns {{southwest: {lng: number, lat: number}, northeast: {lng: number, lat: number}}}
      */
+
+
     getBounds() {
         let viewer = this.viewer;
         let rectangle = viewer.camera.computeViewRectangle();
-        let west = rectangle.west / Math.PI * 180;
-        let north = rectangle.north / Math.PI * 180;
-        let east = rectangle.east / Math.PI * 180;
-        let south = rectangle.south / Math.PI * 180;
-        let bounds = {
-            southwest: {
-                lng: west,
-                lat: south
-            },
-            northeast: {
-                lng: east,
-                lat: north
-            }
-        };
-        return bounds;
+        if (typeof rectangle === "undefined") {
+            //2D下会可能拾取不到坐标，extend返回undefined,所以做以下转换
+            let canvas = viewer.scene.canvas;
+            let upperLeft = new Cesium.Cartesian2(0, 0);//canvas左上角坐标转2d坐标
+            let lowerRight = new Cesium.Cartesian2(
+                canvas.clientWidth,
+                canvas.clientHeight
+            );//canvas右下角坐标转2d坐标
+
+            let ellipsoid = viewer.scene.globe.ellipsoid;
+            let upperLeft3 = viewer.camera.pickEllipsoid(
+                upperLeft,
+                ellipsoid
+            );//2D转3D世界坐标
+
+            let lowerRight3 = viewer.camera.pickEllipsoid(
+                lowerRight,
+                ellipsoid
+            );//2D转3D世界坐标
+
+            let upperLeftCartographic = viewer.scene.globe.ellipsoid.cartesianToCartographic(
+                upperLeft3
+            );//3D世界坐标转弧度
+            let lowerRightCartographic = viewer.scene.globe.ellipsoid.cartesianToCartographic(
+                lowerRight3
+            );//3D世界坐标转弧度
+
+            let west = Cesium.Math.toDegrees(upperLeftCartographic.longitude);//弧度转经纬度
+            let east = Cesium.Math.toDegrees(lowerRightCartographic.longitude);//弧度转经纬度
+
+            let south = Cesium.Math.toDegrees(lowerRightCartographic.latitude);//弧度转经纬度
+            let north = Cesium.Math.toDegrees(upperLeftCartographic.latitude);//弧度转经纬度
+
+            return {
+                southwest: {
+                    lng: west,
+                    lat: south
+                },
+                northeast: {
+                    lng: east,
+                    lat: north
+                }
+            };
+        } else {
+            // 获取经纬度
+            let west = rectangle.west / Math.PI * 180;
+            let north = rectangle.north / Math.PI * 180;
+            let east = rectangle.east / Math.PI * 180;
+            let south = rectangle.south / Math.PI * 180;
+            return {
+                southwest: {
+                    lng: west,
+                    lat: south
+                },
+                northeast: {
+                    lng: east,
+                    lat: north
+                }
+            };
+        }
     }
 
     /**

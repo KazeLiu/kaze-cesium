@@ -13,13 +13,16 @@ export default class CesiumEvent {
     _type = null;
     _showDistance = true; // 在线面的情况下  是否显示长度和周长与面积
     _viewer = null;
+    _debug = false;
 
-    constructor(viewer) {
+    constructor(viewer, isDebugger) {
         this._viewer = viewer;
         this.geometry = new CesiumGeometry(viewer);
         this.utils = new CesiumUtils(viewer);
         this.event(new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas), viewer);
         this.getNorth();
+        // 是否为debugger模式
+        this._debug = isDebugger;
     }
 
     /**
@@ -78,7 +81,21 @@ export default class CesiumEvent {
             allEntity.forEach(entity => {
                 this.reloadTypeIsSixPoint(entity);
             });
+        } else {
+            this.saveChangePolylineOrPolygon();
         }
+    }
+
+    // 保存修改的线或面
+    saveChangePolylineOrPolygon() {
+        let allEntity = this.geometry.getAllEntity();
+        let entities = this._viewer.dataSources.getByName('defaultDraw')[0]?.entities;
+        allEntity.forEach(entity => {
+            let removePointList = entities.values.filter(item => item.id.startsWith(entity.id));
+            removePointList.forEach(point => {
+                entities.removeById(point.id)
+            })
+        });
     }
 
     /**
@@ -119,7 +136,7 @@ export default class CesiumEvent {
                         position: info.position,
                         hasMove: true,
                         id: info.entity.id + '@' + info.index,
-                        label: this.utils.cartesian3ToDegree2(info.position, 1).toString(),
+                        label: this.utils.cartesian3ToDegree2(info.position, 2).toString(),
                         description: 'typeIsSixPoint'
                     }, 'defaultDraw')
                 });
@@ -409,21 +426,25 @@ export default class CesiumEvent {
                     }
                     if (Cesium.defined(entity.polygon)) {
                         // 使用Entity.change方法更新属性
+                        let pointList = entity.polyline.positions.getValue();
                         entity.polygon.hierarchy = new Cesium.PolygonHierarchy(
-                            entity.polygon.hierarchy.getValue().positions.map(function (position, index) {
-                                if (index === parseInt(handlePoint.id.split('@')[1])) {
-                                    return pick;
-                                } else {
-                                    return position;
-                                }
-                            }),
-                            entity.polygon.hierarchy.getValue().holes
+                            pointList.positions.map((position, index) => index === parseInt(handlePoint.id.split('@')[1]) ? pick : position),
+                            // 以上一行代码展开为下
+                            // entity.polygon.hierarchy.getValue().positions.map( (position, index)=> {
+                            //     if (index === parseInt(handlePoint.id.split('@')[1])) {
+                            //         return pick;
+                            //     } else {
+                            //         return position;
+                            //     }
+                            // }),
+                            pointList.holes
                         );
                     }
                 }
             }
             // 切换到非画图时，走一次删除，把没花完的全部清除
             else if (that._type == 0 && Cesium.defined(activeEntity)) {
+                // 如果有activeEntity，就表示是画图
                 stopDrawing(false);
             }
 
