@@ -76,12 +76,11 @@ export default class CesiumUtils {
                 // 数组里面第一个是Cartesian3对象，判定为整个数组都是Cartesian3，直接返回
                 return position;
             } else if (Array.isArray(position[0])) {
-                // [[xx, yy], [xx, yy]]
+                // [[xx, yy, zz], [xx, yy, zz]]
                 return position.map(pos => this.convertToCartesian3(pos));
             } else {
-                // [xx, yy]
+                // [xx, yy, zz]
                 return Cesium.Cartesian3.fromDegrees(...position);
-                // return this.convertToCartesian3Single(position);
             }
         } else if (position instanceof Cesium.Cartesian3) {
             // 不是数组，直接判断是否是Cartesian3对象

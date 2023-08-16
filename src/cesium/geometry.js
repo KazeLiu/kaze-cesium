@@ -188,7 +188,7 @@ export default class CesiumGeometry {
             hasLabel: true,
             labelOption: {},
         }, marker);
-
+        info.heightReference = marker.clampToGround ? Cesium.HeightReference.CLAMP_TO_GROUND : Cesium.HeightReference.RELATIVE_TO_GROUND
         let entity = new Cesium.Entity({
             // http://cesium.xin/cesium/cn/Documentation1.72/Entity.html
             id: info.id,
@@ -205,17 +205,20 @@ export default class CesiumGeometry {
                 image: info.iconImage,
                 scale: info.scale,
                 rotation: info.rotation,
-                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
+                heightReference: info.heightReference
             })
         } else {
             entity.point = new Cesium.PointGraphics(Object.assign({
                 color: Cesium.Color.WHITE,
                 pixelSize: 20,
-                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                heightReference: info.heightReference,
             }, info.point))
         }
         if (info.hasLabel) {
-            this.markerAddLabel(entity, info.label ?? info.name, info.labelOption)
+            this.markerAddLabel(entity, info.label ?? info.name, {
+                ...info.labelOption,
+                heightReference: info.heightReference
+            })
         }
 
         // 附加的entity
@@ -229,7 +232,7 @@ export default class CesiumGeometry {
                         image: attachImage.url,
                         scale: attachImage.scale ?? 0.3,
                         rotation: attachImage.rotation ?? 0,
-                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                        heightReference: info.heightReference,
                         pixelOffset: new Cesium.Cartesian2(attachImage.pixelOffset.x, attachImage.pixelOffset.y)
                     }),
                     position: entity.position,
@@ -277,6 +280,7 @@ export default class CesiumGeometry {
             text: id,
             id,
             material: this.utils.colorToCesiumRGB('#23ADE5', 0.7),
+            clampToGround: true,
         }, polyline);
 
         let line = new Cesium.Entity({
@@ -284,7 +288,7 @@ export default class CesiumGeometry {
             name: info.name,
             parent: info.parent,
             polyline: {
-                clampToGround: true,
+                clampToGround: info.clampToGround,
                 positions: this.utils.convertToCartesian3(info.positions),
                 width: 3,
                 material: info.material,
@@ -306,6 +310,7 @@ export default class CesiumGeometry {
             text: id,
             id,
             material: this.utils.colorToCesiumRGB('#23ADE5', 0.7),
+            clampToGround: true,
         }, polyline);
 
         let polygon = new Cesium.Entity({
@@ -313,7 +318,7 @@ export default class CesiumGeometry {
             name: info.name,
             parent: info.parent,
             polygon: {
-                clampToGround: true,
+                clampToGround: info.clampToGround,
                 hierarchy: new Cesium.PolygonHierarchy(this.utils.convertToCartesian3(info.positions)),
                 width: 3,
                 material: this.utils.colorToCesiumRGB('#23ADE5', 0.7),
@@ -330,11 +335,18 @@ export default class CesiumGeometry {
         return polygon
     }
 
+    /**
+     * 添加半圆罩
+     * @param ellipsoid
+     * @param collectionName
+     * @returns {module:cesium.Entity}
+     */
     addEllipsoid(ellipsoid = {}, collectionName) {
         const id = this.utils.generateUUID();
         let info = Object.assign({
             // 半径参考 https://zh.wikipedia.org/wiki/%E6%A4%AD%E7%90%83
             radii: [200000, 200000, 100000],
+            id,
             material: this.utils.colorToCesiumRGB('#23ADE5', 0.3),
             outlineColor: this.utils.colorToCesiumRGB('#23ADE5', 1)
         }, ellipsoid);
@@ -344,7 +356,7 @@ export default class CesiumGeometry {
         }
         let earthEllipsoid = new Cesium.Entity({
             name: info.name ?? id,
-            id,
+            id: info.id,
             parent: info.parent,
             position: Cesium.Cartesian3.fromDegrees(...info.position),
             ellipsoid: {

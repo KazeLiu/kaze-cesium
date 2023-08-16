@@ -108,10 +108,10 @@ const demo = () => {
     scale: 0.20,
     hasMove: true,
     hasLabel: true,
-    position: [110, 29],
-    rotation: 0
+    position: [110, 29, 65430],
+    rotation: 0,
+    clampToGround: false
   })
-
 
 
   // for (let i = 0; i < 100; i++) {
@@ -153,7 +153,7 @@ const demo = () => {
     {time: '2023-08-14 12:00:00', position: [126.1321, 39.2452]},
     {time: '2023-08-16 12:00:00', position: [136.1237, 49.4324]},
   ];
-  cesium.historyLine(marker, line);
+  // cesium.historyLine(marker, line);
   cesium.setClockController({
     startTime: '2023-08-10 12:00:00',
     stopTime: '2023-08-16 12:00:00'
@@ -176,18 +176,25 @@ const demo = () => {
   cesium.addHeatMap({id: 999, points: heatMapPoint})
 
   cesium.addEllipsoid({
-    position: [56, 30]
+    position: [56, 30],
+    id: '0000a'
   })
+
+  setTimeout(() => {
+    cesium.removeEntity('0000a')
+  }, 3000)
 
   cesium.addLine({
     positions: [
       [114.0,
-        20.0],
+        20.0, 12110],
       [116.0,
-        20.0],
+        20.0, 65430],
       [129.0,
-        30.0],
-    ]
+        30.0, 12340],
+    ],
+    material: cesium.colorToCesiumRGB('#e8118a', 0.7),
+    clampToGround: false,
   })
 
   cesium.addPolygon({
