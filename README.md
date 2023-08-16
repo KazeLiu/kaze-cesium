@@ -11,83 +11,9 @@ kaze-cesium-helper 是一个基于 Cesium 的封装库，提供了绘制点、�
     - [使用](#使用)
     - [API 文档](#api-文档)
         - [初始化API](#初始化api)
-            - `CesiumKaze.init(domId, option, isOffline)`
-              初始化 CesiumKaze 实例，并将地图渲染到指定的容器中。
-
         - [事件监听API](#事件监听API)
-            - `CesiumKaze.on(event, callback)`
-              监听指定的事件，并在事件触发时执行回调函数。
-
-            - `CesiumKaze.off(event)`
-              取消监听指定的事件。
-
         - [图形操作API](#图形操作api)
-            - `CesiumKaze.addMarker(options, collectionName)`
-              添加一个标记点，返回添加的标记点的实体对象。
-
-            - `CesiumKaze.addLine(polyline, collectionName)`
-              添加一个线，返回添加的线的实体对象。
-
-            - `CesiumKaze.addPolygon(polyline, collectionName)`
-              添加一个面，返回添加的面的实体对象。
-
-            - `CesiumKaze.historyLine(marker, timeAndPosition)`
-              绘制历史轨迹。
-
-            - `CesiumKaze.addHeatMap(option)`
-              添加热力图，返回热力图对象
-
         - [工具类API](#工具类api)
-            - `CesiumKaze.generateUUID()`
-              生成 UUID。
-
-            - `CesiumKaze.unlockCamera()`
-              取消视角锁定。
-
-            - `CesiumKaze.lockCamera()`
-              视角锁定。
-
-            - `CesiumKaze.convertToCartesian3(position)`
-              将坐标转换为世界坐标系（Cartesian3）。
-
-            - `CesiumKaze.cartesian3ToDegree2(cartesian, type)`
-              将世界坐标系（Cartesian3）转换为经纬度。
-
-            - `CesiumKaze.computePointDistanceWithTerrain(point1, point2)`
-              计算两点之间的距离（考虑地形）。
-
-            - `CesiumKaze.computePointDistance(point1, point2)`
-              计算两点之间的距离（不考虑地形）。
-
-            - `CesiumKaze.computePolygonArea(polygonPointList)`
-              计算多边形的面积。
-
-            - `CesiumKaze.localDateToJulianDate(date)`
-              将标准时间转换为天文儒略日期。
-
-            - `CesiumKaze.julianDateToLocalDate(julianDate)`
-              将天文儒略日期转换为标准时间。
-
-            - `CesiumKaze.changeCurrentTime(timestamp)`
-              设置当前时间。
-
-            - `CesiumKaze.toN()`
-              将视角调整为正北方向。
-
-            - `CesiumKaze.getBounds()`
-              获取屏幕可视范围的经纬度边界。
-
-            - `CesiumKaze.getCenterPoint()`
-              获取屏幕中心点的经纬度。
-
-            - `CesiumKaze.colorToCesiumRGB(color, alpha)`
-              将颜色和透明度转换为 Cesium 使用的颜色。
-
-            - `CesiumKaze.cameraFly(lng, lat, height)`
-              摄像机飞到指定的经纬度。
-
-            - `CesiumKaze.wgs84ToWindowCoordinates(scene, cartesian3)`
-              世界坐标系转成屏幕坐标
         - [部分示例](#部分示例)
         - [许可证](#许可证)
         - [贡献者](#贡献者)
@@ -502,6 +428,16 @@ CesiumKaze.addMarker({}, 'aa')
 #### CesiumKaze.removeAllHeatMap()
 
 删除全部的热力图
+
+---
+
+#### CesiumKaze.removeEntity(id,removeChild)
+
+根据id删除实体
+
+参数 `id` 是要查找的实体的id。
+
+参数 `removeChild` 是布尔值，是否同时删除parent为该实体的其他实体，默认值为 `'true'`。
 
 ---
 

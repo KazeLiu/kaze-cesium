@@ -75,7 +75,7 @@ export default class CesiumGeometry {
      * @param id 删除的对象
      * @param removeChild 是否同时删除子集
      */
-    removeEntity(id, removeChild = false) {
+    removeEntity(id, removeChild = true) {
         let mainEntity = this.getEntityById(id);
         let _this = this;
         // 删除附属

@@ -47,7 +47,7 @@ onMounted(async () => {
       }),
     ],
     timeline: true,
-    animation:true
+    animation: true
   }, true);
   showBtn.value = true;
   demo();
@@ -154,11 +154,11 @@ const demo = () => {
     {time: '2023-08-14 12:00:00', position: [126.1321, 39.2452]},
     {time: '2023-08-16 12:00:00', position: [136.1237, 49.4324]},
   ];
-  cesium.historyLine(marker, line );
+  cesium.historyLine(marker, line);
   cesium.setClockController({
     startTime: '2023-08-10 12:00:00',
     stopTime: '2023-08-16 12:00:00',
-    clockRange:'CLAMPED',
+    clockRange: 'CLAMPED',
     multiplier: 1000,
   })
 
@@ -185,9 +185,9 @@ const demo = () => {
     parent: marker
   })
   //
-  // setTimeout(() => {
-  //   cesium.removeEntity('111111')
-  // }, 3000)
+  setTimeout(() => {
+    cesium.removeEntity('111111')
+  }, 3000)
 
   cesium.addLine({
     positions: [
@@ -266,8 +266,8 @@ const range = reactive({
     let startJulianDate = clock.startTime;
     let endJulianDate = clock.stopTime;
     // 将起始时间和结束时间转换为 JavaScript Date 对象
-    let startDate = cesium.julianDateToISODate(startJulianDate);
-    let endDate = cesium.julianDateToISODate(endJulianDate);
+    let startDate = cesium.julianDateToLocalDate(startJulianDate);
+    let endDate = cesium.julianDateToLocalDate(endJulianDate);
     range.startTimeInput.value = startDate.toISOString().slice(0, 16);
     range.endTimeInput.value = endDate.toISOString().slice(0, 16)
     // 获取时间轴当前时间
