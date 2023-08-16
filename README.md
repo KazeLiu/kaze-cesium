@@ -62,10 +62,10 @@ kaze-cesium-helper 是一个基于 Cesium 的封装库，提供了绘制点、�
             - `CesiumKaze.computePolygonArea(polygonPointList)`
               计算多边形的面积。
 
-            - `CesiumKaze.iSODateToJulianDate(date)`
+            - `CesiumKaze.localDateToJulianDate(date)`
               将标准时间转换为天文儒略日期。
 
-            - `CesiumKaze.julianDateToISODate(julianDate)`
+            - `CesiumKaze.julianDateToLocalDate(julianDate)`
               将天文儒略日期转换为标准时间。
 
             - `CesiumKaze.changeCurrentTime(timestamp)`
@@ -585,7 +585,7 @@ CesiumKaze.addMarker({}, 'aa')
 
 ---
 
-#### iSODateToJulianDate(date)
+#### localDateToJulianDate(date)
 
 将标准时间转换为天文儒略日期。
 
@@ -594,7 +594,7 @@ CesiumKaze.addMarker({}, 'aa')
 
 - 返回值：Cesium.JulianDate，天文儒略日期。
 
-#### julianDateToISODate(julianDate)
+#### julianDateToLocalDate(julianDate)
 
 将天文儒略日期转换为标准时间。
 

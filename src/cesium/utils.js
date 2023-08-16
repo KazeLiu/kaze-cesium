@@ -165,12 +165,14 @@ export default class CesiumUtils {
     }
 
     /**
-     * 标准时间转换为天文儒略日期
+     * 标准时间转换为天文儒略日期 会根据当前时间自动计算
      * @param date
      * @returns {}
      */
-    iSODateToJulianDate(date) {
-        return Cesium.JulianDate.fromDate(date);
+    localDateToJulianDate(date) {
+        let localDate = new Date(date);
+        let utcDate = new Date(localDate.getTime() - localDate.getTimezoneOffset() * 60000); // 考虑时区偏移的 UTC 时间
+        return Cesium.JulianDate.fromDate(utcDate);
     }
 
     /**
@@ -178,7 +180,7 @@ export default class CesiumUtils {
      * @param julianDate
      * @returns {Date}
      */
-    julianDateToISODate(julianDate) {
+    julianDateToLocalDate(julianDate) {
         return new Date(julianDate.toString())
     }
 
@@ -187,7 +189,7 @@ export default class CesiumUtils {
      * @param timestamp 当前时间时间戳
      */
     changeCurrentTime(timestamp) {
-        let julianDate = this.iSODateToJulianDate(new Date(timestamp));
+        let julianDate = this.localDateToJulianDate(new Date(timestamp));
         this.viewer.clock.currentTime = julianDate;
     }
 
@@ -209,19 +211,19 @@ export default class CesiumUtils {
             clock.shouldAnimate = option.shouldAnimate;
         }
         if (option.clockRange) {
+            // 时间轴内播放一次就停止或循环播放
             clock.clockRange = option.clockRange == "CLAMPED" ? Cesium.ClockRange.CLAMPED : Cesium.ClockRange.LOOP_STOP;
         }
         if (option.multiplier) {
-            // 时间轴内播放一次就停止或循环播放
             clock.multiplier = option.multiplier
         }
         if (option.startTime) {
-            clock.startTime = Cesium.JulianDate.fromDate(new Date(option.startTime));
+            clock.startTime = this.localDateToJulianDate(option.startTime);
         }
         if (option.stopTime) {
-            clock.stopTime = Cesium.JulianDate.fromDate(new Date(option.stopTime));
+            clock.stopTime = this.localDateToJulianDate(option.stopTime);
         }
-        timeline.zoomTo(clock.startTime,clock.stopTime)
+        timeline.zoomTo(clock.startTime, clock.stopTime)
         return clock;
     }
 
@@ -392,5 +394,27 @@ export default class CesiumUtils {
      */
     wgs84ToWindowCoordinates(scene, cartesian3) {
         return Cesium.SceneTransforms.wgs84ToWindowCoordinates(scene, cartesian3);
+    }
+
+
+    static DateTimeFormatter(datetime, viewModel, ignoreDate) {
+        let julianDT = new Cesium.JulianDate()
+        Cesium.JulianDate.addHours(datetime, 8, julianDT)
+        let gregorianDT = Cesium.JulianDate.toGregorianDate(julianDT)
+        let objDT
+        if (ignoreDate)
+            objDT = ''
+        else {
+            objDT = new Date(gregorianDT.year, gregorianDT.month - 1, gregorianDT.day)
+            objDT = gregorianDT.year + '年' + objDT.toLocaleString('zh-cn', {month: 'short'}) + gregorianDT.day + '日'
+            if (viewModel || gregorianDT.hour + gregorianDT.minute === 0)
+                return objDT
+            objDT += ' '
+        }
+        return objDT + `${gregorianDT.hour < 10 ? `0${gregorianDT.hour}` : gregorianDT.hour}:${gregorianDT.minute < 10 ? `0${gregorianDT.minute}` : gregorianDT.minute}:${gregorianDT.second < 10 ? `0${gregorianDT.second}` : gregorianDT.second}`
+    }
+
+    static TimeFormatter(time, viewModel) {
+        return CesiumUtils.DateTimeFormatter(time, viewModel, true)
     }
 }

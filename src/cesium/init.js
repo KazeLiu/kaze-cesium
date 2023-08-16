@@ -1,4 +1,5 @@
 import * as Cesium from "cesium";
+import CesiumUtils from "./utils";
 
 export default class CesiumInit {
     viewer = null;
@@ -83,6 +84,14 @@ export default class CesiumInit {
         this.viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
         this.viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK);
         this.viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOWN, Cesium.KeyboardEventModifier.ALT);
+
+        if (this.viewer.animation) {
+            this.viewer.animation.viewModel.dateFormatter = CesiumUtils.DateTimeFormatter;
+            this.viewer.animation.viewModel.timeFormatter = CesiumUtils.TimeFormatter;
+        }
+        if (this.viewer.timeline) {
+            this.viewer.timeline.makeLabel = CesiumUtils.DateTimeFormatter
+        }
         // 初始化组
         let promiseList = [];
         // 这个是分组，能批量控制图标，每个项目不一样，需要自己设置dataSourceList

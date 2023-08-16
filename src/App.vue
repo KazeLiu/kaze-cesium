@@ -47,6 +47,7 @@ onMounted(async () => {
       }),
     ],
     timeline: true,
+    animation:true
   }, true);
   showBtn.value = true;
   demo();
@@ -153,11 +154,14 @@ const demo = () => {
     {time: '2023-08-14 12:00:00', position: [126.1321, 39.2452]},
     {time: '2023-08-16 12:00:00', position: [136.1237, 49.4324]},
   ];
-  // cesium.historyLine(marker, line);
+  cesium.historyLine(marker, line );
   cesium.setClockController({
     startTime: '2023-08-10 12:00:00',
-    stopTime: '2023-08-16 12:00:00'
+    stopTime: '2023-08-16 12:00:00',
+    clockRange:'CLAMPED',
+    multiplier: 1000,
   })
+
   // 添加热力图
   let heatMapPoint = [];
   for (let i = 0; i < 500; i++) {
@@ -177,12 +181,13 @@ const demo = () => {
 
   cesium.addEllipsoid({
     position: [56, 30],
-    id: '0000a'
+    id: '0000a',
+    parent: marker
   })
-
-  setTimeout(() => {
-    cesium.removeEntity('0000a')
-  }, 3000)
+  //
+  // setTimeout(() => {
+  //   cesium.removeEntity('111111')
+  // }, 3000)
 
   cesium.addLine({
     positions: [
@@ -207,6 +212,7 @@ const demo = () => {
         40.0],
     ]
   })
+
 
   // 添加掏洞的图
   cesium.addPolygon({

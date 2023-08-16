@@ -376,38 +376,42 @@ export default class CesiumGeometry {
      * @param marker
      * @param timeAndPosition [{time:'2023-01-01 12:00:00',position:[122.4882,23.9999]},{time:'2023-01-02 12:00:00',position:[126.1321,39.2452]}]
      * @param hasLine 是否显示线条
+     * @param velocity 图像是否根据移动方向改变方向
      */
-    historyLine(marker, timeAndPosition, hasLine = true) {
-        let positionProperty = new Cesium.SampledPositionProperty();
-        timeAndPosition.forEach(item => {
-            positionProperty.addSample(Cesium.JulianDate.fromDate(new Date(item.time)),
-                this.utils.convertToCartesian3(item.position));
-        })
-        marker.position = positionProperty;
-        if (marker.model) {
-            marker.orientation = new Cesium.VelocityOrientationProperty(positionProperty);
-        }
-        if (marker.billboard) {
-            marker.billboard.alignedAxis = new Cesium.VelocityVectorProperty(positionProperty)
-        }
+    historyLine(marker, timeAndPosition, hasLine = true, velocity = false) {
+        if (marker.model || marker.billboard) {
+            let positionProperty = new Cesium.SampledPositionProperty();
+            timeAndPosition.forEach(item => {
+                positionProperty.addSample(this.utils.localDateToJulianDate(item.time),
+                    this.utils.convertToCartesian3(item.position));
 
-        if (hasLine) {
-            marker.polyline = new Cesium.PolylineGraphics({
-                material: this.utils.colorToCesiumRGB('#4B8BF4', 1),
-                width: 2,
-                clampToGround: true,
-                positions: timeAndPosition.map(x => this.utils.convertToCartesian3(x.position))
-            });
-        }
-        // 时间范围之外 不显示点和线  取消该代码也只能保持显示线不能显示点
-        let availability = new Cesium.TimeIntervalCollection();
-        availability.addInterval(
-            new Cesium.TimeInterval({
-                start: Cesium.JulianDate.fromDate(new Date(timeAndPosition[0].time)),
-                stop: Cesium.JulianDate.fromDate(new Date(timeAndPosition[timeAndPosition.length - 1].time)),
             })
-        );
-        marker.availability = availability;
+            marker.position = positionProperty;
+            if (marker.model && velocity) {
+                marker.orientation = new Cesium.VelocityOrientationProperty(positionProperty);
+            }
+            if (marker.billboard && velocity) {
+                marker.billboard.alignedAxis = new Cesium.VelocityVectorProperty(positionProperty)
+            }
+
+            if (hasLine) {
+                marker.polyline = new Cesium.PolylineGraphics({
+                    material: this.utils.colorToCesiumRGB('#4B8BF4', 1),
+                    width: 2,
+                    clampToGround: true,
+                    positions: timeAndPosition.map(x => this.utils.convertToCartesian3(x.position))
+                });
+            }
+            // 时间范围之外 不显示点和线  取消该代码也只能保持显示线不能显示点
+            let availability = new Cesium.TimeIntervalCollection();
+            availability.addInterval(
+                new Cesium.TimeInterval({
+                    start: this.utils.localDateToJulianDate(timeAndPosition[0].time),
+                    stop: this.utils.localDateToJulianDate(timeAndPosition[timeAndPosition.length - 1].time),
+                })
+            );
+            marker.availability = availability;
+        }
     }
 
     /**
