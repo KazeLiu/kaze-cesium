@@ -165,14 +165,12 @@ export default class CesiumUtils {
     }
 
     /**
-     * 标准时间转换为天文儒略日期 会根据当前时间自动计算
+     * 标准时间转换为天文儒略日期
      * @param date
-     * @returns {}
+     * @returns {JulianDate}
      */
-    localDateToJulianDate(date) {
-        let localDate = new Date(date);
-        let utcDate = new Date(localDate.getTime() - localDate.getTimezoneOffset() * 60000); // 考虑时区偏移的 UTC 时间
-        return Cesium.JulianDate.fromDate(utcDate);
+    jsDateToJulianDate(date) {
+        return Cesium.JulianDate.fromDate(new Date(date));
     }
 
     /**
@@ -180,7 +178,7 @@ export default class CesiumUtils {
      * @param julianDate
      * @returns {Date}
      */
-    julianDateToLocalDate(julianDate) {
+    julianDateToJsDate(julianDate) {
         return new Date(julianDate.toString())
     }
 
@@ -189,8 +187,7 @@ export default class CesiumUtils {
      * @param timestamp 当前时间时间戳
      */
     changeCurrentTime(timestamp) {
-        let julianDate = this.localDateToJulianDate(new Date(timestamp));
-        this.viewer.clock.currentTime = julianDate;
+        this.viewer.clock.currentTime = this.jsDateToJulianDate(timestamp);
     }
 
 
@@ -218,10 +215,10 @@ export default class CesiumUtils {
             clock.multiplier = option.multiplier
         }
         if (option.startTime) {
-            clock.startTime = this.localDateToJulianDate(option.startTime);
+            clock.startTime = this.jsDateToJulianDate(option.startTime);
         }
         if (option.stopTime) {
-            clock.stopTime = this.localDateToJulianDate(option.stopTime);
+            clock.stopTime = this.jsDateToJulianDate(option.stopTime);
         }
         timeline.zoomTo(clock.startTime, clock.stopTime)
         return clock;

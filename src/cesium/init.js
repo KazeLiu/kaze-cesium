@@ -92,6 +92,7 @@ export default class CesiumInit {
         if (this.viewer.timeline) {
             this.viewer.timeline.makeLabel = CesiumUtils.DateTimeFormatter
         }
+
         // 初始化组
         let promiseList = [];
         // 这个是分组，能批量控制图标，每个项目不一样，需要自己设置dataSourceList

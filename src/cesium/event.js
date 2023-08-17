@@ -426,7 +426,7 @@ export default class CesiumEvent {
                     }
                     if (Cesium.defined(entity.polygon)) {
                         // 使用Entity.change方法更新属性
-                        let pointList = entity.polyline.positions.getValue();
+                        let pointList = entity.polygon.hierarchy.getValue();
                         entity.polygon.hierarchy = new Cesium.PolygonHierarchy(
                             pointList.positions.map((position, index) => index === parseInt(handlePoint.id.split('@')[1]) ? pick : position),
                             // 以上一行代码展开为下

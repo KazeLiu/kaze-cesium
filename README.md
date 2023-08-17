@@ -521,7 +521,7 @@ CesiumKaze.addMarker({}, 'aa')
 
 ---
 
-#### localDateToJulianDate(date)
+#### jsDateToJulianDate(date)
 
 将标准时间转换为天文儒略日期。
 
@@ -530,7 +530,7 @@ CesiumKaze.addMarker({}, 'aa')
 
 - 返回值：Cesium.JulianDate，天文儒略日期。
 
-#### julianDateToLocalDate(julianDate)
+#### julianDateToJsDate(julianDate)
 
 将天文儒略日期转换为标准时间。
 

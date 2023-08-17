@@ -51,7 +51,7 @@ onMounted(async () => {
   }, true);
   showBtn.value = true;
   demo();
-  range.init();
+  // range.init();
 })
 
 const demo = () => {
@@ -158,9 +158,16 @@ const demo = () => {
   cesium.setClockController({
     startTime: '2023-08-10 12:00:00',
     stopTime: '2023-08-16 12:00:00',
-    clockRange: 'CLAMPED',
+    clockRange: 'LOOP_STOP',
     multiplier: 1000,
   })
+
+  let clock = cesium.getViewer().clock;
+  clock.onTick.addEventListener(clock => {
+    // console.log(cesium.julianDateToJsDate(clock.currentTime))
+  })
+
+  cesium.changeCurrentTime('2023-08-15 13:24:08')
 
   // 添加热力图
   let heatMapPoint = [];
@@ -257,6 +264,7 @@ const range = reactive({
   timeRange: null,
   timeRangeInput: null,
   init() {
+    return
     let clock = cesium.getViewer().clock;
     range.startTimeInput = document.getElementById('startTimeInput');
     range.endTimeInput = document.getElementById('endTimeInput');
@@ -266,8 +274,8 @@ const range = reactive({
     let startJulianDate = clock.startTime;
     let endJulianDate = clock.stopTime;
     // 将起始时间和结束时间转换为 JavaScript Date 对象
-    let startDate = cesium.julianDateToLocalDate(startJulianDate);
-    let endDate = cesium.julianDateToLocalDate(endJulianDate);
+    let startDate = cesium.julianDateToJsDate(startJulianDate);
+    let endDate = cesium.julianDateToJsDate(endJulianDate);
     range.startTimeInput.value = startDate.toISOString().slice(0, 16);
     range.endTimeInput.value = endDate.toISOString().slice(0, 16)
     // 获取时间轴当前时间

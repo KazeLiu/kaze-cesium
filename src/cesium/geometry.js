@@ -382,7 +382,7 @@ export default class CesiumGeometry {
         if (marker.model || marker.billboard) {
             let positionProperty = new Cesium.SampledPositionProperty();
             timeAndPosition.forEach(item => {
-                positionProperty.addSample(this.utils.localDateToJulianDate(item.time),
+                positionProperty.addSample(this.utils.jsDateToJulianDate(item.time),
                     this.utils.convertToCartesian3(item.position));
 
             })
@@ -406,8 +406,8 @@ export default class CesiumGeometry {
             let availability = new Cesium.TimeIntervalCollection();
             availability.addInterval(
                 new Cesium.TimeInterval({
-                    start: this.utils.localDateToJulianDate(timeAndPosition[0].time),
-                    stop: this.utils.localDateToJulianDate(timeAndPosition[timeAndPosition.length - 1].time),
+                    start: this.utils.jsDateToJulianDate(timeAndPosition[0].time),
+                    stop: this.utils.jsDateToJulianDate(timeAndPosition[timeAndPosition.length - 1].time),
                 })
             );
             marker.availability = availability;

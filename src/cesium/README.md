@@ -17,7 +17,7 @@ npm vite-plugin-cesium
 
 ## 许可证
 
-MIT License
+MIT License 
 
 ## 贡献者
 
