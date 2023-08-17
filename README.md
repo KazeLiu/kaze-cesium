@@ -161,10 +161,10 @@ IMAGERY_PROVIDER_ONE_PICK = [layer]
 - `entityMove`：点图形移动事件，鼠标拖拽图形后触发
     - `entity` 返回被移动的图形本身
     - `location` 移动后的经纬度
-- `changePoint`：修改线，面的图形时，拖拽拐点后触发。可以配合`getBounds()`获取屏幕可视范围边界的经纬度
+- `changePoint`：修改线，面的图形时，拖拽拐点后触发。
     - `handlePoint` 当前拐点本身
     - `entity` 被修改的线面本身
-- `cameraMove`：摄像机移动后触发，在拖动地球或者缩放视角时触发。
+- `cameraMove`：摄像机移动后触发，在拖动地球或者缩放视角时触发。可以配合`getBounds()`获取屏幕可视范围边界的经纬度
     - `location` 摄像机中心点
     - `cameraHeight` 摄像机高度
 - `northAngle`：监听真北指向角度

@@ -25,7 +25,7 @@ export default class CesiumGeometry {
      * @param entity 点
      */
     addEntityToCollection(entity, collectionName = 'defaultCollection') {
-        entity.collectionName = 'defaultCollection';
+        entity.collectionName = collectionName;
         let find = this.viewer.dataSources.getByName(collectionName)
         if (find && find.length > 0) {
             find[0].entities.add(entity);
@@ -51,12 +51,14 @@ export default class CesiumGeometry {
      * @param collectionName 组名
      */
     removeCollection(collectionName) {
-        let list = this.viewer.dataSources.getByName(collectionName)
-        if (list && list.length > 0) {
-            // list[0].entities.removeAll();
-            list[0].entities.values.forEach(item => {
-                this.removeEntity(item.id, true)
-            })
+        let dataSourceList = this.viewer.dataSources.getByName(collectionName);
+        if (dataSourceList && dataSourceList.length > 0) {
+            let dataSource = dataSourceList[0];
+
+            for (let i = dataSource.entities.values.length - 1; i >= 0; i--) {
+                let entity = dataSource.entities.values[i];
+                this.removeEntity(entity.id, true);
+            }
         }
     }
 
@@ -77,6 +79,7 @@ export default class CesiumGeometry {
      */
     removeEntity(id, removeChild = true) {
         let mainEntity = this.getEntityById(id);
+        debugger
         let _this = this;
         // 删除附属
         let defaultPrimitives = this.viewer.dataSources.getByName('defaultPrimitives')[0]
@@ -205,7 +208,10 @@ export default class CesiumGeometry {
                 image: info.iconImage,
                 scale: info.scale,
                 rotation: info.rotation,
-                heightReference: info.heightReference
+                heightReference: info.heightReference,
+                eyeOffset:info.eyeOffset,
+                pixelOffset:info.pixelOffset,
+                pixelOffsetScaleByDistance:info.pixelOffsetScaleByDistance
             })
         } else {
             entity.point = new Cesium.PointGraphics(Object.assign({

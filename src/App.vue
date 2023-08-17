@@ -46,6 +46,7 @@ onMounted(async () => {
         url: '/map/{z}/{x}/{y}.jpg',
       }),
     ],
+    DATA_SOURCE_LIST: ['haha'],
     timeline: true,
     animation: true
   }, true);
@@ -112,8 +113,22 @@ const demo = () => {
     position: [110, 29, 65430],
     rotation: 0,
     clampToGround: false
-  })
-
+  }, 'haha')
+  let marker2 = cesium.addMarker({
+    iconImage: `/public/logo2.jpg`,
+    id: '111112',
+    name: '黑',
+    scale: 0.20,
+    hasMove: true,
+    hasLabel: true,
+    position: [115, 36, 65500],
+    rotation: 0,
+    clampToGround: false,
+  }, 'haha')
+  //
+  setTimeout(() => {
+    cesium.removeCollection('haha')
+  }, 3000)
 
   // for (let i = 0; i < 100; i++) {
   //   // 添加一个点
@@ -154,7 +169,7 @@ const demo = () => {
     {time: '2023-08-14 12:00:00', position: [126.1321, 39.2452]},
     {time: '2023-08-16 12:00:00', position: [136.1237, 49.4324]},
   ];
-  cesium.historyLine(marker, line);
+  // cesium.historyLine(marker, line);
   cesium.setClockController({
     startTime: '2023-08-10 12:00:00',
     stopTime: '2023-08-16 12:00:00',
@@ -191,10 +206,7 @@ const demo = () => {
     id: '0000a',
     parent: marker
   })
-  //
-  setTimeout(() => {
-    cesium.removeEntity('111111')
-  }, 3000)
+
 
   cesium.addLine({
     positions: [
