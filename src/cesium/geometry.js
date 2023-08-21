@@ -85,7 +85,7 @@ export default class CesiumGeometry {
         let entities = defaultPrimitives.entities.values
         // 倒序遍历实体并安全删除满足条件的实体
         for (let entity of entities.slice().reverse()) {
-            if (entity.description.getValue().searchId == id) {
+            if (entity.description.getValue(undefined).searchId === id) {
                 defaultPrimitives.entities.remove(entity);
             }
         }
@@ -107,7 +107,7 @@ export default class CesiumGeometry {
         }
 
         // 删除热力图
-        let heatMap = this._heatMapList.find(x => x.id == 'heatMap' + id);
+        let heatMap = this._heatMapList.find(x => x.id === 'heatMap' + id);
         if (heatMap) {
             heatMap.cesiumHeatmap.remove();
             this._heatMapList = this._heatMapList.filter(x => x.id !== 'heatMap' + id);
@@ -340,7 +340,12 @@ export default class CesiumGeometry {
         return polygon
     }
 
-
+    /**
+     * 添加椭圆
+     * @param ellipse
+     * @param collectionName
+     * @returns {module:cesium.Entity}
+     */
     addEllipse(ellipse = {}, collectionName) {
         const id = this.utils.generateUUID();
         let info = Object.assign({
@@ -419,6 +424,33 @@ export default class CesiumGeometry {
         this.addEntityToCollection(earthEllipsoid, collectionName)
         return earthEllipsoid
     }
+
+    addArrow(arrow = {}, collectionName) {
+        const id = this.utils.generateUUID();
+        let info = Object.assign({
+            name: id,
+            text: id,
+            id,
+            color: this.utils.colorToCesiumRGB('#23ADE5', 0.7),
+            dashed: false,
+            clampToGround: true,
+            lineWidth: 30,
+        }, arrow);
+
+
+        const arrowEntity = new Cesium.Entity({
+            polyline: {
+                positions: this.utils.convertToCartesian3(info.positions),
+                width: info.lineWidth,
+                material: new Cesium.PolylineArrowMaterialProperty(info.color),
+                clampToGround: true
+            }
+        });
+
+        this.addEntityToCollection(arrowEntity, collectionName);
+        return arrowEntity;
+    }
+
 
     /**
      * 历史轨迹
