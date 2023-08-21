@@ -79,7 +79,6 @@ export default class CesiumGeometry {
      */
     removeEntity(id, removeChild = true) {
         let mainEntity = this.getEntityById(id);
-        debugger
         let _this = this;
         // 删除附属
         let defaultPrimitives = this.viewer.dataSources.getByName('defaultPrimitives')[0]
@@ -209,9 +208,9 @@ export default class CesiumGeometry {
                 scale: info.scale,
                 rotation: info.rotation,
                 heightReference: info.heightReference,
-                eyeOffset:info.eyeOffset,
-                pixelOffset:info.pixelOffset,
-                pixelOffsetScaleByDistance:info.pixelOffsetScaleByDistance
+                eyeOffset: info.eyeOffset,
+                pixelOffset: info.pixelOffset,
+                pixelOffsetScaleByDistance: info.pixelOffsetScaleByDistance
             })
         } else {
             entity.point = new Cesium.PointGraphics(Object.assign({
@@ -340,6 +339,50 @@ export default class CesiumGeometry {
         this.addEntityToCollection(polygon, collectionName)
         return polygon
     }
+
+
+    addEllipse(ellipse = {}, collectionName) {
+        const id = this.utils.generateUUID();
+        let info = Object.assign({
+            name: id,
+            text: id,
+            id,
+            material: this.utils.colorToCesiumRGB('#23ADE5', 0.7),
+            outlineColor: this.utils.colorToCesiumRGB('#23ADE5', 1),
+            semiMinorAxis: 100000, // Default radius in meters
+            semiMajorAxis: 80000, // Default radius in meters
+        }, ellipse);
+        let circleEntity = new Cesium.Entity({
+            id: info.id,
+            name: info.name,
+            parent: info.parent,
+            ellipse: {
+                semiMinorAxis: info.semiMinorAxis,
+                semiMajorAxis: info.semiMajorAxis,
+                outline: true,
+                outlineColor: info.outlineColor,
+                material: info.material,
+            },
+            position: Cesium.Cartesian3.fromDegrees(...info.position),
+        });
+
+        this.addEntityToCollection(circleEntity, collectionName);
+        return circleEntity;
+    }
+
+    /**
+     * 添加圆
+     * @param circle
+     * @param collectionName
+     */
+    addCircle(circle = {}, collectionName) {
+        return this.addEllipse({
+            ...circle,
+            semiMinorAxis: circle.radius,
+            semiMajorAxis: circle.radius,
+        }, collectionName)
+    }
+
 
     /**
      * 添加半圆罩

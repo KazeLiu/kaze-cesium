@@ -130,6 +130,12 @@ const demo = () => {
     cesium.removeCollection('haha')
   }, 3000)
 
+  cesium.addCircle({
+    id: '111',
+    position: [115, 36],
+    radius: 100000,
+  })
+
   // for (let i = 0; i < 100; i++) {
   //   // 添加一个点
   //   let marker = cesium.addMarker({

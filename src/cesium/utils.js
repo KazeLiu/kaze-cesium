@@ -319,25 +319,29 @@ export default class CesiumUtils {
 
     /**
      * 将颜色和透明度转化为cesium使用的颜色
-     * @param color
+     * @param hexColor
      * @param alpha
      * @returns {module:cesium.Color}
      */
-    colorToCesiumRGB(color, alpha) {
-        const sColor = color.toLowerCase();
-        const reg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6})$/;
+    colorToCesiumRGB(hexColor, alpha) {
+        const reg = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
-        if (!reg.test(sColor)) {
-            throw new Error('传入的颜色不是16进制颜色');
+        if (!reg.test(hexColor)) {
+            throw new Error('Invalid hexadecimal color format');
         }
 
-        let sColorNew = sColor.length === 4 ? `#${sColor[1]}${sColor[1]}${sColor[2]}${sColor[2]}${sColor[3]}${sColor[3]}` : sColor;
-        const sColorChange = Array.from(sColorNew.slice(1), (c, i) => parseInt(sColorNew.substr(i * 2, 2), 16));
+        const normalizedHexColor = hexColor.length === 4 ?
+            `#${hexColor[1]}${hexColor[1]}${hexColor[2]}${hexColor[2]}${hexColor[3]}${hexColor[3]}` :
+            hexColor;
+
+        const red = parseInt(normalizedHexColor.slice(1, 3), 16);
+        const green = parseInt(normalizedHexColor.slice(3, 5), 16);
+        const blue = parseInt(normalizedHexColor.slice(5, 7), 16);
 
         return new Cesium.Color(
-            sColorChange[0] / 255,
-            sColorChange[1] / 255,
-            sColorChange[2] / 255,
+            red / 255,
+            green / 255,
+            blue / 255,
             alpha
         );
     }
