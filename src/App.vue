@@ -125,16 +125,18 @@ const demo = () => {
     rotation: 0,
     clampToGround: false,
   }, 'haha')
-  //
-  setTimeout(() => {
-    cesium.removeCollection('haha')
-  }, 3000)
+
+
+  // setTimeout(() => {
+  //   cesium.removeCollection('haha')
+  // }, 3000)
 
   cesium.addCircle({
     id: '111',
     position: [115, 36],
     radius: 100000,
   })
+
 
   // for (let i = 0; i < 100; i++) {
   //   // 添加一个点
@@ -227,7 +229,7 @@ const demo = () => {
     clampToGround: false,
   })
 
-  cesium.addPolygon({
+  let a = cesium.addPolygon({
     positions: [
       [120.0,
         30.0],
@@ -237,6 +239,11 @@ const demo = () => {
         40.0],
     ]
   })
+
+  cesium.changePolygonHierarchy(a,[[120.0,
+    30.0],
+    [116.0,
+      30.0]])
 
 
   // 添加掏洞的图

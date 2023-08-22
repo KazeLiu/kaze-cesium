@@ -315,19 +315,42 @@ export default class CesiumEvent {
             if (that._type == null) {
                 const pick = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.position), viewer.scene)
                 return that.utils.cartesian3ToDegree2(pick);
-            } else if (that._type == 0) {
+            } else if (that._type == 0 || that._type == 6) {
                 const pick = viewer.scene.pick(evt.position)
                 const position = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.position), viewer.scene)
                 const windowCoordinates = that.utils.wgs84ToWindowCoordinates(viewer.scene, position);
 
-                if (pick && position) {
-                    const info = {
-                        entity: pick?.id,
-                        position: that.utils.cartesian3ToDegree2(position),
-                        windowCoordinates
-                    };
-                    that.trigger("contextMenu", info);
+                if(that._type == 0 && pick && position){
+                    if (pick && position) {
+                        const info = {
+                            entity: pick?.id,
+                            position: that.utils.cartesian3ToDegree2(position),
+                            windowCoordinates
+                        };
+                        that.trigger("contextMenu", info);
+                    }
                 }
+
+                if(that._type == 6){
+                    let parent = null; // 如果点击的是拐点 这是他的父级
+                    let parentIndex = null; // 如果点击的是拐点 这个表示它是父级拐点中的第几个
+                    // 如果id带@ 则是某个图形的拐点，把parent也放进去
+                    if (pick && pick.id && cesium.defined(pick.id) && pick.id.id && pick.id.id.split('@').length > 1) {
+                        let id = pick.id.id.split('@')[0];
+                        parent = that.geometry.getEntityById(id);
+                    }
+                    if (pick && position) {
+                        const info = {
+                                parent,
+                                parentIndex,
+                            entity: pick?.id,
+                            position: that.utils.cartesian3ToDegree2(position),
+                            windowCoordinates
+                        };
+                        that.trigger("contextMenu", info);
+                    }
+                }
+
             } else {
                 stopDrawing(true);
             }

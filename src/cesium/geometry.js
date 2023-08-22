@@ -249,7 +249,6 @@ export default class CesiumGeometry {
             entity.attachList = tempEntityList
         }
         this.addEntityToCollection(entity, collectionName)
-        this.utils.unlockCamera();
         return entity;
     }
 
@@ -341,6 +340,21 @@ export default class CesiumGeometry {
     }
 
     /**
+     * 修改面的点 因为修改复杂 单独拿出来 修改点和线不添加方法
+     * @param entity 被修改的图形
+     * @param positions 点的坐标 [[],[],[]]
+     */
+    changePolygonHierarchy(entity,positions) {
+        if (Cesium.defined(entity) && entity.polygon) {
+            if (positions.length <= 3) {
+                console.error('点的数量过少')
+                return
+            }
+            entity.polygon.hierarchy = new Cesium.PolygonHierarchy(this.utils.convertToCartesian3(positions))
+        }
+    }
+
+    /**
      * 添加椭圆
      * @param ellipse
      * @param collectionName
@@ -425,13 +439,19 @@ export default class CesiumGeometry {
         return earthEllipsoid
     }
 
+    /**
+     * 添加箭头
+     * @param arrow 箭头的参数
+     * @param collectionName
+     * @returns {module:cesium.Entity}
+     */
     addArrow(arrow = {}, collectionName) {
         const id = this.utils.generateUUID();
         let info = Object.assign({
             name: id,
             text: id,
             id,
-            color: this.utils.colorToCesiumRGB('#23ADE5', 0.7),
+            material: this.utils.colorToCesiumRGB('#23ADE5', 0.7),
             dashed: false,
             clampToGround: true,
             lineWidth: 30,
@@ -439,11 +459,14 @@ export default class CesiumGeometry {
 
 
         const arrowEntity = new Cesium.Entity({
+            name: info.name ?? id,
+            id: info.id,
+            parent: info.parent,
             polyline: {
                 positions: this.utils.convertToCartesian3(info.positions),
                 width: info.lineWidth,
-                material: new Cesium.PolylineArrowMaterialProperty(info.color),
-                clampToGround: true
+                material: new Cesium.PolylineArrowMaterialProperty(info.material),
+                clampToGround: info.clampToGround
             }
         });
 

@@ -153,9 +153,12 @@ IMAGERY_PROVIDER_ONE_PICK = [layer]
 - `holeDraw`：掏洞完成后的事件，返回一个参数
     - `entity` 被掏洞的那个图标信息，掏洞的图标信息在`draw`返回的参数内
 - `handleClick`：点击图形的事件，返回一个参数，但是type必须等于0 （怎么调整type值在下面有写）
-    - `info` 返回被选中的图形(info.entity)和经纬度海拔(info.position)和屏幕坐标(info.windowCoordinates)
+    - `info` 返回被选中的图形(`info.entity`)和经纬度海拔(`info.position`)和屏幕坐标(`info.windowCoordinates`)
 - `contextMenu`：右键事件，返回一个参数
-    - `info` 返回被选中的图形(info.entity)和经纬度海拔(info.position)和屏幕坐标(info.windowCoordinates)
+    - `info` 返回被选中的图形(`info.entity`)和经纬度海拔(`info.position`)和屏幕坐标(`info.windowCoordinates`)；
+      在编辑模式下(`type == 6`) ，还会附带两个参数`info.parent`和`info.parentIndex`，他们的意思是如果你点击的是拐点，
+      那么parent代表拥有这个拐点的图形和它是这个图形的第几个拐点。可以使用`entity.polygon.hierarchy = new Cesium.PolygonHierarchy([修改后的点])`
+      方法修改图形的点。
 - `cameraMove`：视角移动事件，当摄像机高度改变和转动地球的时候触发
     - `info` 返回摄像机中心点的经纬度海拔和摄像机高度
 - `entityMove`：点图形移动事件，鼠标拖拽图形后触发
@@ -293,6 +296,16 @@ cesium.addPolygon(
 
 ---
 
+#### CesiumKaze.changePolygonHierarchy(entity,positions)
+
+修改点，没有返回值
+
+参数 `entity` 是图形本身，可以通过`getEntityById`方法传入id后的返回值查看
+
+参数 `positions` 是经纬度数组，格式为`[[x1,y1,z1],[x2,y2,z2],[x3,y3,z3]]`，传入三个以下数不会修改值
+
+---
+
 #### CesiumKaze.addEllipsoid(ellipsoid = {}, collectionName)
 
 添加一个半球罩，返回添加的半球罩的实体对象。
@@ -313,6 +326,29 @@ cesium.addPolygon(
 或 [英文文档](https://cesium.com/learn/cesiumjs/ref-doc/Polyline.html)
 
 参数 `collectionName` 是一个字符串，为添加到集合中，默认为`defaultCollection`，如何添加集合和查找集合在下面
+
+---
+
+#### CesiumKaze.addArrow(arrow = {}, collectionName)
+
+添加一个箭头，返回添加的箭头的实体对象。
+
+参数 `arrow` 是一个对象，组件添加的默认值包含以下属性：
+
+| 参数            | 是否必填 | 默认值                           | 描述                                            |
+|---------------|------|-------------------------------|-----------------------------------------------|
+| name          |      | `id`的值                        | 箭头的名称，默认等于标记点的id                              |
+| id            |      | `utils.generateUUID()`返回的随机id | 箭头的id，全局唯一                                    |
+| material      |      |                               |                                               |
+| dashed        |      |                               | 是否是虚线，未实现                                     |
+| clampToGround |      | true                          | 是否贴地                                          |
+| parent        |      |                               | 指定父级的entity，在删除entity时如果parent和entity对应则会一起删除 |
+| positions     | 必填   |                               | 箭头的箭尾和箭头 [[x1,y1,z2],[x2,y2,z2]]              |
+| width         |      | 30                            | 箭头宽度                                          |
+
+
+参数 `collectionName` 是一个字符串，为添加到集合中，默认为`defaultCollection`，如何添加集合和查找集合在下面
+
 
 ---
 
