@@ -2,7 +2,6 @@ import * as Cesium from "cesium";
 import CesiumGeometry from "./geometry.js";
 import CesiumUtils from "./utils.js";
 import * as turf from "@turf/turf";
-import * as cesium from "cesium";
 
 
 // 事件监听的方法放这里
@@ -335,7 +334,7 @@ export default class CesiumEvent {
                     let parent = null; // 如果点击的是拐点 这是他的父级
                     let parentIndex = null; // 如果点击的是拐点 这个表示它是父级拐点中的第几个
                     // 如果id带@ 则是某个图形的拐点，把parent也放进去
-                    if (pick && pick.id && cesium.defined(pick.id) && pick.id.id && pick.id.id.split('@').length > 1) {
+                    if (pick && pick.id && Cesium.defined(pick.id) && pick.id.id && pick.id.id.split('@').length > 1) {
                         let id = pick.id.id.split('@')[0];
                         parent = that.geometry.getEntityById(id);
                     }
