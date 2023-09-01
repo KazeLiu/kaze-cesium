@@ -103,6 +103,8 @@ const demo = () => {
     func.clg('data', data)
   })
 
+  console.log(new Cesium.Cartesian3(0, 0, -5000))
+  console.log(cesium.convertToCartesian3([0, 0, -5000]))
   let marker = cesium.addMarker({
     iconImage: `/public/logo.jpg`,
     id: '111111',
@@ -112,19 +114,29 @@ const demo = () => {
     hasLabel: true,
     position: [110, 29, 65430],
     rotation: 0,
-    clampToGround: false
+    clampToGround: true,
+    labelOption: {
+      showBackground: false,
+      eyeOffset: new Cesium.Cartesian3(0, 0, -5000), // 设置eyeOffset以使标签悬浮在上方
+      // backgroundColor: cesium.colorToCesiumRGB('#000000',0),
+    },
+    attachImage: [{
+      url: `/public/logo2.jpg`,
+      scale: 0.3,
+      pixelOffset: {x: 10, y: 10}
+    }],
   }, 'haha')
-  let marker2 = cesium.addMarker({
-    iconImage: `/public/logo2.jpg`,
-    id: '111112',
-    name: '黑',
-    scale: 0.20,
-    hasMove: true,
-    hasLabel: true,
-    position: [115, 36, 65500],
-    rotation: 0,
-    clampToGround: false,
-  }, 'haha')
+  // let marker2 = cesium.addMarker({
+  //   iconImage: `/public/logo2.jpg`,
+  //   id: '111112',
+  //   name: '黑',
+  //   scale: 0.20,
+  //   hasMove: true,
+  //   hasLabel: true,
+  //   position: [115, 36, 65500],
+  //   rotation: 0,
+  //   clampToGround: false,
+  // }, 'haha')
 
 
   // setTimeout(() => {
@@ -240,7 +252,7 @@ const demo = () => {
     ]
   })
 
-  cesium.changePolygonHierarchy(a,[[120.0,
+  cesium.changePolygonHierarchy(a, [[120.0,
     30.0],
     [116.0,
       30.0]])

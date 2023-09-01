@@ -198,6 +198,7 @@ IMAGERY_PROVIDER_ONE_PICK = [layer]
 | scale           |      | `0.1`                         | 图标的缩放比例                                       |
 | point           |      | {show: false}                 | 对象，为一个点，没有大小，视觉上是一个白色的像素点                     |
 | hasLabel        |      | true                          | 组件自定义属性，是否显示`name`，显示的位置在图标下方                 |
+| labelOption     |      | 见下                            | 文字的设置，包含相对位置等                                 |
 | hasMove         |      | false                         | 组件自定义属性，图标能否被拖动                               |
 | attachImage     |      | []                            | 组件自定义属性，填入附加值                                 |
 | parent          |      |                               | 指定父级的entity，在删除entity时如果parent和entity对应则会一起删除 |
@@ -225,6 +226,32 @@ cesium.addMarker({
 
 其他官方属性请查看 [中文文档](http://cesium.xin/cesium/cn/Documentation1.95/Entity.html)
 或 [英文文档](https://cesium.com/learn/cesiumjs/ref-doc/Entity.html)
+
+`labelOption`请参考官方文档的`LabelGraphics`，默认值如下
+
+| 参数              | 是否必填 | 默认值                                    | 描述                                                        |
+|-----------------|------|----------------------------------------|-----------------------------------------------------------|
+| text            | 是    | Cesium.Color.WHITE                     | 填充颜色，通常使用Cesium.Color对象表示颜色。                              |
+| fillColor       |      | Cesium.Color.WHITE                     | 填充颜色，通常使用Cesium.Color对象表示颜色。                              |
+| showBackground  |      | true                                   | 是否显示背景。                                                   |
+| backgroundColor |      | 指定值                                    | 背景颜色，通常使用Cesium.Color对象表示颜色。如果您提供的是一个函数，则需要提供一个函数来计算背景颜色。 |
+| style           |      | Cesium.LabelStyle.FILL                 | 标签的样式，通常使用Cesium.LabelStyle枚举值。                           |
+| pixelOffset     |      | new Cesium.Cartesian2(0, 40)           | 标签的像素偏移，通常使用Cesium.Cartesian2对象表示偏移。                      |
+| verticalOrigin  |      | Cesium.VerticalOrigin.BOTTOM           | 标签的垂直方向的对齐方式，通常使用Cesium.VerticalOrigin枚举值。                |
+| heightReference |      | Cesium.HeightReference.CLAMP_TO_GROUND | 标签的高度参考，通常使用Cesium.HeightReference枚举值。                    |
+| font            |      | '14px microsoft YaHei'                 | 标签的字体样式，通常使用字符串表示。                                        |
+
+```js
+// 常用的比如
+cesium.addMarker({
+    labelOption: {
+        showBackground: false, // 关闭我默认给的标签背景色
+        eyeOffset: new CesiumKaze.cesium.Cartesian3(0, 0, -5000), // 设置eyeOffset以使标签悬浮在上方
+        pixelOffset: new CesiumKaze.cesium.Cartesian2(100, 200), // 向下移动100px向右移动200px
+        backgroundColor: CesiumKaze.colorToCesiumRGB('#000000', 0.5) // 设置自定义背景色，需要showBackground为true
+    }
+})
+```
 
 参数 `collectionName` 是一个字符串，为添加到集合中，默认为`defaultCollection`，如何添加集合和查找集合在下面
 
@@ -345,7 +372,6 @@ cesium.addPolygon(
 | parent        |      |                               | 指定父级的entity，在删除entity时如果parent和entity对应则会一起删除 |
 | positions     | 必填   |                               | 箭头的箭尾和箭头 [[x1,y1,z2],[x2,y2,z2]]              |
 | width         |      | 30                            | 箭头宽度                                          |
-
 
 参数 `collectionName` 是一个字符串，为添加到集合中，默认为`defaultCollection`，如何添加集合和查找集合在下面
 
@@ -508,13 +534,14 @@ CesiumKaze.addMarker({}, 'aa')
 #### convertToCartesian3(position)
 
 将坐标转换为世界坐标系（Cartesian3）。
+这个是把经纬度转换为世界坐标系，不是初始化一个Cartesian3值，初始化需要使用`new cesiumKaze.cesium.Cartesian3(x,y,z)`
 
 - 参数：
     - `position`：Array 或 Cesium.Cartesian3，输入的坐标，可以是经纬度数组或世界坐标系。
 
 - 返回值：Array 或 Cesium.Cartesian3，转换后的世界坐标系。
 
-#### cartesian3ToDegree2(cartesian, type = 0)
+#### cartesian3ToDegree2(cartesian, type = [0]())
 
 将世界坐标系（Cartesian3）转换为经纬度。
 
@@ -687,7 +714,7 @@ MIT License
 
 ## 贡献者
 
-- kazeliu
+- KazeLiu
 
 ## 反馈和问题
 

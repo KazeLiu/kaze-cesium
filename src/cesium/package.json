@@ -1,6 +1,6 @@
 {
   "name": "kaze-cesium-helper",
-  "version": "0.9.9",
+  "version": "1.0.0",
   "description": "一个Cesium的工具库，用于绘制点、线、多边形以及计算长度和面积。",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,15 @@
     "dev": "vite",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["cesium", "wrapper", "points", "lines", "polygons", "length", "area"],
+  "keywords": [
+    "cesium",
+    "wrapper",
+    "points",
+    "lines",
+    "polygons",
+    "length",
+    "area"
+  ],
   "author": "kazeliu",
   "license": "MIT",
   "repository": {

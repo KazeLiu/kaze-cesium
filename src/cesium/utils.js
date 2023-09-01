@@ -69,6 +69,7 @@ export default class CesiumUtils {
 
     /**
      * 判断是不是世界坐标系 如果是世界坐标系直接返回，如果是经纬度就转化为世界坐标系返回，接受一个世界坐标系或者坐标系组
+     * 这个是把经纬度转换为世界坐标系，不是初始化一个Cartesian3值，初始化需要使用`new cesiumKaze.cesium.Cartesian3(x,y,z)`
      */
     convertToCartesian3(position) {
         if (Array.isArray(position)) {
@@ -371,12 +372,31 @@ export default class CesiumUtils {
      * @throws {Error} 如果参数无效或飞行操作失败，将抛出错误。
      * @example
      * cameraFlyFromDegrees(10, 20, 30, 40); // 从 (10, 20) 到 (30, 40) 的地理范围飞行至相机视角。
+     * 以getBounds()获取的数据为例，northEast中lng是east，lat是north。 southwest中lng是west，lat是south。
      */
     cameraFlyFromDegrees(west, south, east, north, height = 50000) {
         this.viewer.camera.flyTo({
             duration: 1,
             destination: Cesium.Rectangle.fromDegrees(west, south, east, north)
         })
+    }
+
+
+    /**
+     * 控制摄像机高度
+     * @param height
+     */
+    cameraFlyHeight(height) {
+        // 获取当前摄像机位置的笛卡尔坐标
+        let cameraPosition = this.viewer.camera.position;
+        // 将笛卡尔坐标转换为地理坐标
+        let cameraCartographic = Cesium.Cartographic.fromCartesian(cameraPosition);
+        // 设置新的高度
+        cameraCartographic.height = height;
+        // 将地理坐标转换回笛卡尔坐标
+        let newCameraPosition = this.viewer.scene.globe.ellipsoid.cartographicToCartesian(cameraCartographic);
+        // 更新摄像机位置
+        this.viewer.camera.position = newCameraPosition;
     }
 
     /**

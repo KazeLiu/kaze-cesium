@@ -230,6 +230,7 @@ export default class CesiumGeometry {
         if (info.attachImage && Array.isArray(info.attachImage) && info.attachImage.length > 0) {
             let tempEntityList = [];
             info.attachImage.forEach(attachImage => {
+                let pixelOffset = attachImage.pixelOffset ? new Cesium.Cartesian2(attachImage.pixelOffset.x, attachImage.pixelOffset.y) : new Cesium.Cartesian2(0, 0)
                 let tempEntity = new Cesium.Entity({
                     parent: entity,
                     id: this.utils.generateUUID(),
@@ -238,7 +239,7 @@ export default class CesiumGeometry {
                         scale: attachImage.scale ?? 0.3,
                         rotation: attachImage.rotation ?? 0,
                         heightReference: info.heightReference,
-                        pixelOffset: new Cesium.Cartesian2(attachImage.pixelOffset.x, attachImage.pixelOffset.y)
+                        pixelOffset
                     }),
                     position: entity.position,
                     description: {searchId: entity.id, entity}
@@ -344,7 +345,7 @@ export default class CesiumGeometry {
      * @param entity 被修改的图形
      * @param positions 点的坐标 [[],[],[]]
      */
-    changePolygonHierarchy(entity,positions) {
+    changePolygonHierarchy(entity, positions) {
         if (Cesium.defined(entity) && entity.polygon) {
             if (positions.length <= 3) {
                 console.error('点的数量过少')
@@ -454,7 +455,7 @@ export default class CesiumGeometry {
             material: this.utils.colorToCesiumRGB('#23ADE5', 0.7),
             dashed: false,
             clampToGround: true,
-            lineWidth: 30,
+            lineWidth: 10,
         }, arrow);
 
 
