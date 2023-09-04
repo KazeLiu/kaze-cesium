@@ -206,6 +206,8 @@ export default class CesiumGeometry {
             entity.billboard = new Cesium.BillboardGraphics({
                 image: info.iconImage,
                 scale: info.scale,
+                width: info.width,
+                height: info.height,
                 rotation: info.rotation,
                 heightReference: info.heightReference,
                 eyeOffset: info.eyeOffset,

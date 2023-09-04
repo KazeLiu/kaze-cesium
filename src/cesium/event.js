@@ -336,6 +336,7 @@ export default class CesiumEvent {
                     // 如果id带@ 则是某个图形的拐点，把parent也放进去
                     if (pick && pick.id && Cesium.defined(pick.id) && pick.id.id && pick.id.id.split('@').length > 1) {
                         let id = pick.id.id.split('@')[0];
+                        parentIndex = pick.id.id.split('@')[1];
                         parent = that.geometry.getEntityById(id);
                     }
                     if (pick && position) {

@@ -34,6 +34,10 @@ export default class CesiumInit {
     constructor(domId, option, isOffline, isDebugger) {
         // 是否为debugger模式
         this._debug = isDebugger;
+
+        if (option.token) {
+            Cesium.Ion.defaultAccessToken = option.token
+        }
         // 初始化时摄像机视角 在 new CesiumKaze().init 的option里面添加
         // DEFAULT_VIEW_RECTANGLE: Cesium.Rectangle.fromDegrees(89.5, 20.4, 110.4, 61.2),
         if (option.DEFAULT_VIEW_RECTANGLE) {

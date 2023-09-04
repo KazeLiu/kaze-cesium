@@ -48,7 +48,8 @@ onMounted(async () => {
     ],
     DATA_SOURCE_LIST: ['haha'],
     timeline: true,
-    animation: true
+    animation: true,
+    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIxZTc4MWQ2MS1hMmRkLTRjMjItOGEwOS1hMDlhNmI5ZGQ2ZWEiLCJpZCI6NDYzMDcsImlhdCI6MTYxNjAzNTE1MH0.jX5I7_PYuAWMbuH0FrHLUhdiunyJrf1OZAJmUXzNc-Q'
   }, true);
   showBtn.value = true;
   demo();
@@ -95,16 +96,18 @@ const demo = () => {
     func.clg('entity', entity)
   })
 
-  cesium.on('contextMenu', (entity) => {
+  cesium.on('contextMenu', ({parent, parentIndex, entity}) => {
     func.clg('entity', entity)
+    let hie = parent.polygon.hierarchy.getValue(undefined);
+    hie.positions.splice(parentIndex, 1)
+    parent.polygon.hierarchy = new CesiumKaze.cesium.PolygonHierarchy(hie.positions)
+    cesium.changeMouseEventType(6)
   })
 
   cesium.on('changePoint', (data) => {
     func.clg('data', data)
   })
 
-  console.log(new Cesium.Cartesian3(0, 0, -5000))
-  console.log(cesium.convertToCartesian3([0, 0, -5000]))
   let marker = cesium.addMarker({
     iconImage: `/public/logo.jpg`,
     id: '111111',
@@ -248,6 +251,8 @@ const demo = () => {
       [116.0,
         30.0],
       [127.0,
+        40.0],
+      [129.0,
         40.0],
     ]
   })
