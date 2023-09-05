@@ -452,7 +452,7 @@ export default class CesiumGeometry {
         const id = this.utils.generateUUID();
         let info = Object.assign({
             name: id,
-            text: id,
+            hasLabel: false,
             id,
             material: this.utils.colorToCesiumRGB('#23ADE5', 0.7),
             dashed: false,
@@ -472,7 +472,17 @@ export default class CesiumGeometry {
                 clampToGround: info.clampToGround
             }
         });
-
+        if (info.hasLabel) {
+            let midInfo = this.utils.computeMidPoint(...info.positions)
+            if (midInfo?.geometry?.coordinates) {
+                arrowEntity.position = this.utils.convertToCartesian3(midInfo.geometry.coordinates)
+            }
+            this.markerAddLabel(arrowEntity, info.label ?? info.name, {
+                pixelOffset: Cesium.Cartesian2.ZERO,
+                heightReference: info.heightReference,
+                ...info.labelOption,
+            })
+        }
         this.addEntityToCollection(arrowEntity, collectionName);
         return arrowEntity;
     }

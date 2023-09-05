@@ -184,6 +184,12 @@ const demo = () => {
   // setTimeout(() => {
   //   cesium.removeEntity(marker.id)
   // }, 5000)
+  cesium.addArrow({
+    positions: [[74.1237, 33.4324], [126.1321, 39.2452]],
+    hasLabel: true,
+    label: 'hahahaha',
+  })
+
 
   // 添加轨迹移动
   let line = [

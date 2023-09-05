@@ -148,6 +148,18 @@ export default class CesiumUtils {
     }
 
     /**
+     * 两点间中心点 不带地形
+     * @param point1 经纬度 [longitude1, latitude1]
+     * @param point2 经纬度 [longitude2, latitude2]
+     */
+    computeMidPoint(point1, point2) {
+        if (point1 && point2) {
+            return turf.midpoint(point1, point2);
+        }
+        return 0
+    }
+
+    /**
      * 计算面积
      * @param polygonPointList 经纬度
      */
