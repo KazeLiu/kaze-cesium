@@ -142,6 +142,12 @@ export default class CesiumUtils {
      */
     computePointDistance(point1, point2) {
         if (point1 && point2) {
+            if (point1 instanceof Cesium.Cartesian3) {
+                point1 = this.cartesian3ToDegree2(point1, 1)
+            }
+            if (point2 instanceof Cesium.Cartesian3) {
+                point2 = this.cartesian3ToDegree2(point2, 1)
+            }
             return turf.distance(point1, point2, {units: 'meters'});
         }
         return 0
@@ -154,6 +160,12 @@ export default class CesiumUtils {
      */
     computeMidPoint(point1, point2) {
         if (point1 && point2) {
+            if (point1 instanceof Cesium.Cartesian3) {
+                point1 = this.cartesian3ToDegree2(point1, 1)
+            }
+            if (point2 instanceof Cesium.Cartesian3) {
+                point2 = this.cartesian3ToDegree2(point2, 1)
+            }
             return turf.midpoint(point1, point2);
         }
         return 0

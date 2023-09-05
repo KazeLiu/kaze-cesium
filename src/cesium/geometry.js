@@ -470,7 +470,7 @@ export default class CesiumGeometry {
                 width: info.lineWidth,
                 material: new Cesium.PolylineArrowMaterialProperty(info.material),
                 clampToGround: info.clampToGround
-            }
+            },
         });
         if (info.hasLabel) {
             let midInfo = this.utils.computeMidPoint(...info.positions)
@@ -480,6 +480,7 @@ export default class CesiumGeometry {
             this.markerAddLabel(arrowEntity, info.label ?? info.name, {
                 pixelOffset: Cesium.Cartesian2.ZERO,
                 heightReference: info.heightReference,
+                font: 'transform: rotate(45deg)',
                 ...info.labelOption,
             })
         }
