@@ -119,7 +119,7 @@ export default class CesiumUtils {
             };
         }
         if (type == 1) {
-            return [longitude, latitude]
+            return [Number(longitude.toFixed(6)), Number(latitude.toFixed(6))]
         }
         if (type == 2) {
             return [longitude.toFixed(6), latitude.toFixed(6)]
@@ -442,6 +442,14 @@ export default class CesiumUtils {
     }
 
 
+    /**
+     * 转换时间
+     * @param datetime
+     * @param viewModel
+     * @param ignoreDate
+     * @returns {string}
+     * @constructor
+     */
     static DateTimeFormatter(datetime, viewModel, ignoreDate) {
         let julianDT = new Cesium.JulianDate()
         Cesium.JulianDate.addHours(datetime, 8, julianDT)
@@ -461,5 +469,28 @@ export default class CesiumUtils {
 
     static TimeFormatter(time, viewModel) {
         return CesiumUtils.DateTimeFormatter(time, viewModel, true)
+    }
+
+    /**
+     * 计算任意角度下的经纬度
+     * @param centerLongitude
+     * @param centerLatitude
+     * @param radius
+     * @param angle
+     * @returns {{latitude: *, longitude: *}}
+     */
+    calculateCoordinates(centerLongitude, centerLatitude, radius, angle) {
+        // 将角度从度转换为弧度
+        angle = angle * (Math.PI / 180);
+        // 计算新的经度
+        let newLongitude = centerLongitude + (radius / 111.32) * Math.cos(angle);
+
+        // 计算新的纬度
+        let newLatitude = centerLatitude + (radius / 111.32) * Math.sin(angle);
+
+        return {
+            longitude: newLongitude,
+            latitude: newLatitude,
+        };
     }
 }

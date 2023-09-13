@@ -96,6 +96,7 @@ export default class CesiumGeometry {
                 if (entity.parent === mainEntity) {
                     _this.removeEntity(entity.id, true)
                 }
+                // todo parent如果是数组
             })
         }
 
@@ -243,6 +244,9 @@ export default class CesiumGeometry {
                         heightReference: info.heightReference,
                         pixelOffset
                     }),
+                    label: Object.assign({
+                        text: attachImage.text,
+                    }, attachImage.labelOption),
                     position: entity.position,
                     description: {searchId: entity.id, entity}
                 });
@@ -456,7 +460,7 @@ export default class CesiumGeometry {
             id,
             material: this.utils.colorToCesiumRGB('#23ADE5', 0.7),
             dashed: false,
-            clampToGround: true,
+            clampToGround: false,
             lineWidth: 10,
         }, arrow);
 
@@ -512,10 +516,15 @@ export default class CesiumGeometry {
                 marker.billboard.alignedAxis = new Cesium.VelocityVectorProperty(positionProperty)
             }
 
+            // label图片跟随实体一起动
+            marker.attachList?.forEach(attachEntity => {
+                attachEntity.position = positionProperty;
+            })
+
             if (hasLine) {
                 marker.polyline = new Cesium.PolylineGraphics({
-                    material: this.utils.colorToCesiumRGB('#4B8BF4', 1),
-                    width: 2,
+                    material: new Cesium.PolylineArrowMaterialProperty(this.utils.colorToCesiumRGB('#4B8BF4', 1)),
+                    width: 10,
                     clampToGround: true,
                     positions: timeAndPosition.map(x => this.utils.convertToCartesian3(x.position))
                 });

@@ -126,7 +126,9 @@ const demo = () => {
     attachImage: [{
       url: `/public/logo2.jpg`,
       scale: 0.3,
-      pixelOffset: {x: 10, y: 10}
+      pixelOffset: {x: 10, y: 10},
+      text: '原神！启动！',
+      labelOption: {pixelOffset: {x: 100, y: 100}}
     }],
   }, 'haha')
   let marker2 = cesium.addMarker({

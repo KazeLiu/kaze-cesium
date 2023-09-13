@@ -46,10 +46,8 @@ export default class CesiumInit {
         if (option.DATA_SOURCE_LIST) {
             this.dataSourceList = option.DATA_SOURCE_LIST;
         }
-        let defOption = {};
         if (isOffline != true) {
-            // 官方地形数据
-            defOption.terrain = Cesium.Terrain.fromWorldTerrain();
+            option.imageryProviderViewModels = [];
         }
         // 新建地球视图
         this.viewer = new Cesium.Viewer(domId, Object.assign({
@@ -62,7 +60,8 @@ export default class CesiumInit {
             homeButton: false, // 主页按钮
             sceneModePicker: false, // 视图模式切换按钮
             fullscreenButton: false, // 全屏按钮
-        }, defOption, option));
+            terrain: undefined  // 默认无地形 要地形传Cesium.Terrain.fromWorldTerrain()
+        }, option));
         // 多个图层可以叠加 在 new CesiumKaze().init 的option里面添加
         // IMAGERY_PROVIDER: [
         //       new Cesium.UrlTemplateImageryProvider({

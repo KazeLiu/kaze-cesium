@@ -1,6 +1,6 @@
 {
   "name": "kaze-cesium-helper",
-  "version": "1.0.1",
+  "version": "1.0.4",
   "description": "一个Cesium的工具库，用于绘制点、线、多边形以及计算长度和面积",
   "main": "dist/index.js",
   "scripts": {

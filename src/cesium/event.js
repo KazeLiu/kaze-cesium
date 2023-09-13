@@ -301,6 +301,41 @@ export default class CesiumEvent {
                     }
                 }
                 activeShapePoint.push(pick);
+            } else if (that._type === 6) {
+                let pick = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.position), viewer.scene);
+                if (!Cesium.defined(pick)) {
+                    return;
+                }
+                let allEntities = that.geometry.getEntitiesByCondition((entity) => (entity.polyline != undefined || entity.polygon != undefined))
+                if (allEntities.length == 1) {
+                    let entity = allEntities[0];
+                    if (entity.polyline) {
+                        let pointList = entity.polyline.positions.getValue();
+                        that.geometry.addMarker({
+                            position: pick,
+                            hasMove: true,
+                            id: entity.id + '@' + pointList.length,
+                            label: that.utils.cartesian3ToDegree2(pick, 2).toString(),
+                            description: 'typeIsSixPoint'
+                        }, 'defaultDraw')
+                        pointList.push(pick);
+                        entity.polyline.positions = pointList;
+                    }
+                    if (entity.polygon) {
+                        let hierarchy = entity.polygon.hierarchy.getValue();
+                        that.geometry.addMarker({
+                            position: pick,
+                            hasMove: true,
+                            id: entity.id + '@' + hierarchy.positions.length,
+                            label: that.utils.cartesian3ToDegree2(pick, 2).toString(),
+                            description: 'typeIsSixPoint'
+                        }, 'defaultDraw')
+                        hierarchy.positions.push(pick);
+                        entity.polygon.hierarchy = new Cesium.PolygonHierarchy(hierarchy.positions, hierarchy.holes);
+                    }
+                } else {
+                    console.error('获取到的图形大于1个，不提供添加新点的功能')
+                }
             }
 
             // 防止取消监听失败
@@ -319,7 +354,7 @@ export default class CesiumEvent {
                 const position = viewer.scene.globe.pick(viewer.camera.getPickRay(evt.position), viewer.scene)
                 const windowCoordinates = that.utils.wgs84ToWindowCoordinates(viewer.scene, position);
 
-                if(that._type == 0 && pick && position){
+                if (that._type == 0 && pick && position) {
                     if (pick && position) {
                         const info = {
                             entity: pick?.id,
@@ -330,7 +365,7 @@ export default class CesiumEvent {
                     }
                 }
 
-                if(that._type == 6){
+                if (that._type == 6) {
                     let parent = null; // 如果点击的是拐点 这是他的父级
                     let parentIndex = null; // 如果点击的是拐点 这个表示它是父级拐点中的第几个
                     // 如果id带@ 则是某个图形的拐点，把parent也放进去
@@ -341,8 +376,8 @@ export default class CesiumEvent {
                     }
                     if (pick && position) {
                         const info = {
-                                parent,
-                                parentIndex,
+                            parent,
+                            parentIndex,
                             entity: pick?.id,
                             position: that.utils.cartesian3ToDegree2(position),
                             windowCoordinates
@@ -350,7 +385,6 @@ export default class CesiumEvent {
                         that.trigger("contextMenu", info);
                     }
                 }
-
             } else {
                 stopDrawing(true);
             }
