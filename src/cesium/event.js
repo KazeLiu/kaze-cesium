@@ -191,9 +191,9 @@ export default class CesiumEvent {
                             position: x
                         }));
                     })
-                } else if (that._type == 2) {
+                } else if (that._type == 2 && activeShapePoint.length > 0) {
                     entityList = that.geometry.addLine({positions: activeShapePoint}, 'defaultDraw');
-                } else if (that._type == 3) {
+                } else if (that._type == 3 && activeShapePoint.length > 0) {
                     entityList = that.geometry.addPolygon({positions: activeShapePoint}, 'defaultDraw');
                 } else if (that._type == 4) {
                     let newHole = activeShapePoint.map(x => that.utils.cartesian3ToDegree2(x, 1))
